@@ -1,0 +1,371 @@
+<meta charset="utf-8" /><meta http-equiv="content-security-policy" content=""><meta name="hf:doc:metadata" content="{&quot;local&quot;:&quot;parallelizzazione-dei-modelli&quot;,&quot;sections&quot;:[{&quot;local&quot;:&quot;panoramica-della-parallelizzazione&quot;,&quot;title&quot;:&quot;Panoramica della parallelizzazione&quot;},{&quot;local&quot;:&quot;concetti&quot;,&quot;title&quot;:&quot;Concetti&quot;},{&quot;local&quot;:&quot;parallelizzazione-dei-dati&quot;,&quot;title&quot;:&quot;Parallelizzazione dei Dati &quot;},{&quot;local&quot;:&quot;parallelizzazione-dei-dati-con-zero&quot;,&quot;title&quot;:&quot;Parallelizzazione dei Dati con ZeRO &quot;},{&quot;local&quot;:&quot;parallelizzazione-ingenua-del-modello-verticale-e-parallelizzazione-di-pipeline&quot;,&quot;title&quot;:&quot;Parallelizzazione Ingenua del Modello (Verticale) e Parallelizzazione di Pipeline&quot;},{&quot;local&quot;:&quot;parallelizzazione-dei-tensori&quot;,&quot;title&quot;:&quot;Parallelizzazione dei Tensori&quot;},{&quot;local&quot;:&quot;dppp&quot;,&quot;title&quot;:&quot;DP+PP&quot;},{&quot;local&quot;:&quot;dppptp&quot;,&quot;title&quot;:&quot;DP+PP+TP&quot;},{&quot;local&quot;:&quot;zero-dppptp&quot;,&quot;title&quot;:&quot;ZeRO DP+PP+TP&quot;},{&quot;local&quot;:&quot;flexflow&quot;,&quot;title&quot;:&quot;FlexFlow&quot;},{&quot;local&quot;:&quot;quale-strategia-usare-e-quando&quot;,&quot;title&quot;:&quot;Quale Strategia Usare e Quando&quot;}],&quot;title&quot;:&quot;Parallelizzazione dei modelli&quot;}" data-svelte="svelte-1phssyn">
+	<link rel="modulepreload" href="/docs/transformers/pr_18301/it/_app/assets/pages/__layout.svelte-hf-doc-builder.css">
+	<link rel="modulepreload" href="/docs/transformers/pr_18301/it/_app/start-hf-doc-builder.js">
+	<link rel="modulepreload" href="/docs/transformers/pr_18301/it/_app/chunks/vendor-hf-doc-builder.js">
+	<link rel="modulepreload" href="/docs/transformers/pr_18301/it/_app/chunks/paths-hf-doc-builder.js">
+	<link rel="modulepreload" href="/docs/transformers/pr_18301/it/_app/pages/__layout.svelte-hf-doc-builder.js">
+	<link rel="modulepreload" href="/docs/transformers/pr_18301/it/_app/pages/parallelism.mdx-hf-doc-builder.js">
+	<link rel="modulepreload" href="/docs/transformers/pr_18301/it/_app/chunks/IconCopyLink-hf-doc-builder.js">
+	<link rel="modulepreload" href="/docs/transformers/pr_18301/it/_app/chunks/CodeBlock-hf-doc-builder.js"> 
+
+
+
+
+
+
+<h1 class="relative group"><a id="parallelizzazione-dei-modelli" class="header-link block pr-1.5 text-lg no-hover:hidden with-hover:absolute with-hover:p-1.5 with-hover:opacity-0 with-hover:group-hover:opacity-100 with-hover:right-full" href="#parallelizzazione-dei-modelli"><span><svg class="" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 256"><path d="M167.594 88.393a8.001 8.001 0 0 1 0 11.314l-67.882 67.882a8 8 0 1 1-11.314-11.315l67.882-67.881a8.003 8.003 0 0 1 11.314 0zm-28.287 84.86l-28.284 28.284a40 40 0 0 1-56.567-56.567l28.284-28.284a8 8 0 0 0-11.315-11.315l-28.284 28.284a56 56 0 0 0 79.196 79.197l28.285-28.285a8 8 0 1 0-11.315-11.314zM212.852 43.14a56.002 56.002 0 0 0-79.196 0l-28.284 28.284a8 8 0 1 0 11.314 11.314l28.284-28.284a40 40 0 0 1 56.568 56.567l-28.285 28.285a8 8 0 0 0 11.315 11.314l28.284-28.284a56.065 56.065 0 0 0 0-79.196z" fill="currentColor"></path></svg></span></a>
+	<span>Parallelizzazione dei modelli
+	</span></h1>
+
+<h2 class="relative group"><a id="panoramica-della-parallelizzazione" class="header-link block pr-1.5 text-lg no-hover:hidden with-hover:absolute with-hover:p-1.5 with-hover:opacity-0 with-hover:group-hover:opacity-100 with-hover:right-full" href="#panoramica-della-parallelizzazione"><span><svg class="" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 256"><path d="M167.594 88.393a8.001 8.001 0 0 1 0 11.314l-67.882 67.882a8 8 0 1 1-11.314-11.315l67.882-67.881a8.003 8.003 0 0 1 11.314 0zm-28.287 84.86l-28.284 28.284a40 40 0 0 1-56.567-56.567l28.284-28.284a8 8 0 0 0-11.315-11.315l-28.284 28.284a56 56 0 0 0 79.196 79.197l28.285-28.285a8 8 0 1 0-11.315-11.314zM212.852 43.14a56.002 56.002 0 0 0-79.196 0l-28.284 28.284a8 8 0 1 0 11.314 11.314l28.284-28.284a40 40 0 0 1 56.568 56.567l-28.285 28.285a8 8 0 0 0 11.315 11.314l28.284-28.284a56.065 56.065 0 0 0 0-79.196z" fill="currentColor"></path></svg></span></a>
+	<span>Panoramica della parallelizzazione
+	</span></h2>
+
+<p>I vari approcci della parallelizzazione sono usati nel machine learning moderno per: </p>
+<ol><li>adattare modelli molto grandi in hardware limitati - ad esempio, i soli parametri del modello t5-11b pesano 45GB</li>
+<li>velocizzare significativamente l’allenamento - terminando in poche ore allenamenti che impiegherebbero un anno </li></ol>
+<p>Inizieremo discutendo in dettaglio diverse tecniche di parallelizzazione 1D, i loro pro e contro e come queste possano essere combinate in
+parallelizzazione 2D e 3D per consentire un allenamento ancora più veloce e supportare modelli ancora più grandi. Diversi potenti approcci alternativi saranno presentati.</p>
+<p>Sebbene i concetti principali siano applicabili ad ogni altro framework, questo articolo è incentrato sulle implementazioni basate su Pytorch.</p>
+<h2 class="relative group"><a id="concetti" class="header-link block pr-1.5 text-lg no-hover:hidden with-hover:absolute with-hover:p-1.5 with-hover:opacity-0 with-hover:group-hover:opacity-100 with-hover:right-full" href="#concetti"><span><svg class="" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 256"><path d="M167.594 88.393a8.001 8.001 0 0 1 0 11.314l-67.882 67.882a8 8 0 1 1-11.314-11.315l67.882-67.881a8.003 8.003 0 0 1 11.314 0zm-28.287 84.86l-28.284 28.284a40 40 0 0 1-56.567-56.567l28.284-28.284a8 8 0 0 0-11.315-11.315l-28.284 28.284a56 56 0 0 0 79.196 79.197l28.285-28.285a8 8 0 1 0-11.315-11.314zM212.852 43.14a56.002 56.002 0 0 0-79.196 0l-28.284 28.284a8 8 0 1 0 11.314 11.314l28.284-28.284a40 40 0 0 1 56.568 56.567l-28.285 28.285a8 8 0 0 0 11.315 11.314l28.284-28.284a56.065 56.065 0 0 0 0-79.196z" fill="currentColor"></path></svg></span></a>
+	<span>Concetti
+	</span></h2>
+
+<p>Segue una breve descrizione dei concetti principali che verranno dettagliatamente descritti in questo documento.</p>
+<ol><li>DataParallel (DP) - lo stesso setup è replicato più volte, passando ciascuna volta una parte dei dati. Il processing è eseguito in parallelo e tutti i setup sono sincronizzati alla fine di ogni iterazione di allenamento.</li>
+<li>TensorParallel (TP) - ogni tensore è diviso in più blocchi, in questo modo anzichè dover essere collocato interamente in un’unica GPU, ciascun blocco di tensore risiederà nella GPU ad esso assegnata. Durante il processing, ogni blocco è processato separatamente e in parallelo su differenti GPU ed i risultati sono poi sincronizzati alla fine dello step. Questo processo è talvolta definito parallelizzazione orizzontale poichè lo splitting avviene su un livello orizzontale.</li>
+<li>PipelineParallel (PP) - il modello è diviso verticalmente (layer-level) su più GPU, così che solo uno o più layers del modello risiedano in un’unica GPU. Ciascuna GPU esegue in parallelo le differenti fase della pipeline e lavora su una porzione ridotta della batch.</li>
+<li>Zero Redundancy Optimizer (ZeRO) - esegue una divisione simile al metodo TP, con l’eccezione che l’intero tensore viene poi ricostruito per una computazione in avanti (forward) o all’indietro (backward), per cui il modello non deve essere modificato. Supporta anche diverse tecniche di offloading per compensare in casi di memoria GPU limitata.</li>
+<li>Sharded DDP - è un altro nome per il metodo ZeRO in diverse altre implementazioni di ZeRO.</li></ol>
+<h2 class="relative group"><a id="parallelizzazione-dei-dati" class="header-link block pr-1.5 text-lg no-hover:hidden with-hover:absolute with-hover:p-1.5 with-hover:opacity-0 with-hover:group-hover:opacity-100 with-hover:right-full" href="#parallelizzazione-dei-dati"><span><svg class="" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 256"><path d="M167.594 88.393a8.001 8.001 0 0 1 0 11.314l-67.882 67.882a8 8 0 1 1-11.314-11.315l67.882-67.881a8.003 8.003 0 0 1 11.314 0zm-28.287 84.86l-28.284 28.284a40 40 0 0 1-56.567-56.567l28.284-28.284a8 8 0 0 0-11.315-11.315l-28.284 28.284a56 56 0 0 0 79.196 79.197l28.285-28.285a8 8 0 1 0-11.315-11.314zM212.852 43.14a56.002 56.002 0 0 0-79.196 0l-28.284 28.284a8 8 0 1 0 11.314 11.314l28.284-28.284a40 40 0 0 1 56.568 56.567l-28.285 28.285a8 8 0 0 0 11.315 11.314l28.284-28.284a56.065 56.065 0 0 0 0-79.196z" fill="currentColor"></path></svg></span></a>
+	<span>Parallelizzazione dei Dati 
+	</span></h2>
+
+<p>La maggior parte degli utenti con sole 2 GPU godono già di una velocità di allenamento migliorata grazie a <code>DataParallel</code> (DP) e <code>DistributedDataParallel</code> (DDP)
+che sono pressochè banali da utilizzare. Questa è una funzionalità built-in di Pytorch.</p>
+<h2 class="relative group"><a id="parallelizzazione-dei-dati-con-zero" class="header-link block pr-1.5 text-lg no-hover:hidden with-hover:absolute with-hover:p-1.5 with-hover:opacity-0 with-hover:group-hover:opacity-100 with-hover:right-full" href="#parallelizzazione-dei-dati-con-zero"><span><svg class="" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 256"><path d="M167.594 88.393a8.001 8.001 0 0 1 0 11.314l-67.882 67.882a8 8 0 1 1-11.314-11.315l67.882-67.881a8.003 8.003 0 0 1 11.314 0zm-28.287 84.86l-28.284 28.284a40 40 0 0 1-56.567-56.567l28.284-28.284a8 8 0 0 0-11.315-11.315l-28.284 28.284a56 56 0 0 0 79.196 79.197l28.285-28.285a8 8 0 1 0-11.315-11.314zM212.852 43.14a56.002 56.002 0 0 0-79.196 0l-28.284 28.284a8 8 0 1 0 11.314 11.314l28.284-28.284a40 40 0 0 1 56.568 56.567l-28.285 28.285a8 8 0 0 0 11.315 11.314l28.284-28.284a56.065 56.065 0 0 0 0-79.196z" fill="currentColor"></path></svg></span></a>
+	<span>Parallelizzazione dei Dati con ZeRO 
+	</span></h2>
+
+<p>La parallelizzazione dei dati ZeRO-powered (ZeRO-DP) è descritta dal seguente diagramma preso da questo <a href="https://www.microsoft.com/en-us/research/blog/zero-deepspeed-new-system-optimizations-enable-training-models-with-over-100-billion-parameters/" rel="nofollow">post:</a>
+<img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/parallelism-zero.png" alt="DeepSpeed-Image-1"></p>
+<p>Può essere difficile da comprendere, ma in realtà il concetto è relativamente semplice. Consiste nel comune <code>DataParallel</code> (DP),
+dove anzichè replicare tutti i parametri del modello, gradienti e stati degli ottimizzatori, ogni GPU ne memorizza soltanto una parte.
+Dopodichè, nel momento del run-time in cui tutti i parametri di quel layer sono necessari, le GPU si sincronizzano per dare l’un l’altra le parti mancanti - tutto qui.</p>
+<p>Considera questo semplice modello con 3 layer, dove ogni layer ha 3 parametri:</p>
+
+	<div class="code-block relative"><div class="absolute top-2.5 right-4"><button class="inline-flex items-center relative text-sm focus:text-green-500 cursor-pointer focus:outline-none transition duration-200 ease-in-out opacity-0 mx-0.5   text-gray-600 " title="code excerpt" type="button"><svg class="" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="currentColor" focusable="false" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 32 32"><path d="M28,10V28H10V10H28m0-2H10a2,2,0,0,0-2,2V28a2,2,0,0,0,2,2H28a2,2,0,0,0,2-2V10a2,2,0,0,0-2-2Z" transform="translate(0)"></path><path d="M4,18H2V4A2,2,0,0,1,4,2H18V4H4Z" transform="translate(0)"></path><rect fill="none" width="32" height="32"></rect></svg>
+	<div class="absolute pointer-events-none transition-opacity bg-black text-white py-1 px-2 leading-tight rounded font-normal shadow left-1/2 top-full transform -translate-x-1/2 translate-y-2 opacity-0"><div class="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-black border-4 border-t-0" style="border-left-color: transparent; border-right-color: transparent; "></div>
+	Copied</div></button></div>
+	<pre><!-- HTML_TAG_START -->La |<span class="hljs-string"> Lb </span>|<span class="hljs-string"> Lc
+---</span>|<span class="hljs-string">----</span>|<span class="hljs-string">---
+a0 </span>|<span class="hljs-string"> b0 </span>|<span class="hljs-string"> c0
+a1 </span>|<span class="hljs-string"> b1 </span>|<span class="hljs-string"> c1
+a2 </span>|<span class="hljs-string"> b2 </span>|<span class="hljs-string"> c2</span><!-- HTML_TAG_END --></pre></div>
+<p>Il layer La ha pesi a0, a1 ed a2.</p>
+<p>Se abbiamo 3 GPU, lo Shared DDP (o Zero-DP) divide il modello in 3 GPU come segue:</p>
+
+	<div class="code-block relative"><div class="absolute top-2.5 right-4"><button class="inline-flex items-center relative text-sm focus:text-green-500 cursor-pointer focus:outline-none transition duration-200 ease-in-out opacity-0 mx-0.5   text-gray-600 " title="code excerpt" type="button"><svg class="" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="currentColor" focusable="false" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 32 32"><path d="M28,10V28H10V10H28m0-2H10a2,2,0,0,0-2,2V28a2,2,0,0,0,2,2H28a2,2,0,0,0,2-2V10a2,2,0,0,0-2-2Z" transform="translate(0)"></path><path d="M4,18H2V4A2,2,0,0,1,4,2H18V4H4Z" transform="translate(0)"></path><rect fill="none" width="32" height="32"></rect></svg>
+	<div class="absolute pointer-events-none transition-opacity bg-black text-white py-1 px-2 leading-tight rounded font-normal shadow left-1/2 top-full transform -translate-x-1/2 translate-y-2 opacity-0"><div class="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-black border-4 border-t-0" style="border-left-color: transparent; border-right-color: transparent; "></div>
+	Copied</div></button></div>
+	<pre><!-- HTML_TAG_START -->GPU0:
+La |<span class="hljs-string"> Lb </span>|<span class="hljs-string"> Lc
+---</span>|<span class="hljs-string">----</span>|<span class="hljs-string">---
+a0 </span>|<span class="hljs-string"> b0 </span>|<span class="hljs-string"> c0
+
+GPU1:
+La </span>|<span class="hljs-string"> Lb </span>|<span class="hljs-string"> Lc
+---</span>|<span class="hljs-string">----</span>|<span class="hljs-string">---
+a1 </span>|<span class="hljs-string"> b1 </span>|<span class="hljs-string"> c1
+
+GPU2:
+La </span>|<span class="hljs-string"> Lb </span>|<span class="hljs-string"> Lc
+---</span>|<span class="hljs-string">----</span>|<span class="hljs-string">---
+a2 </span>|<span class="hljs-string"> b2 </span>|<span class="hljs-string"> c2</span><!-- HTML_TAG_END --></pre></div>
+<p>In un certo senso, questo è lo stesso di fare slicing orizzontale, come nella parallelzzazione dei tensori, se immaginiamo il tipico diagramma DNN.
+Lo slicing verticale invece si ha quando inseriamo interi layer (o gruppi di layer) su diverse GPU. Ma questo è soltanto l’inizio.</p>
+<p>Adesso, ogni GPU riceverà le classiche mini-batch come nel DP:</p>
+
+	<div class="code-block relative"><div class="absolute top-2.5 right-4"><button class="inline-flex items-center relative text-sm focus:text-green-500 cursor-pointer focus:outline-none transition duration-200 ease-in-out opacity-0 mx-0.5   text-gray-600 " title="code excerpt" type="button"><svg class="" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="currentColor" focusable="false" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 32 32"><path d="M28,10V28H10V10H28m0-2H10a2,2,0,0,0-2,2V28a2,2,0,0,0,2,2H28a2,2,0,0,0,2-2V10a2,2,0,0,0-2-2Z" transform="translate(0)"></path><path d="M4,18H2V4A2,2,0,0,1,4,2H18V4H4Z" transform="translate(0)"></path><rect fill="none" width="32" height="32"></rect></svg>
+	<div class="absolute pointer-events-none transition-opacity bg-black text-white py-1 px-2 leading-tight rounded font-normal shadow left-1/2 top-full transform -translate-x-1/2 translate-y-2 opacity-0"><div class="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-black border-4 border-t-0" style="border-left-color: transparent; border-right-color: transparent; "></div>
+	Copied</div></button></div>
+	<pre><!-- HTML_TAG_START --><span class="hljs-attribute">x0</span> <span class="hljs-operator">=</span>&gt; GPU0
+<span class="hljs-attribute">x1</span> <span class="hljs-operator">=</span>&gt; GPU1
+<span class="hljs-attribute">x2</span> <span class="hljs-operator">=</span>&gt; GPU2<!-- HTML_TAG_END --></pre></div>
+<p>Gli input sono invariati, come se venissero processati dal modello normale.</p>
+<p>Innanzitutto, gli input entrano nel layer La.</p>
+<p>Concentriamoci solo su GPU0: x0 necessita dei parametri a0, a1 e a2 per il suo percorso in avanti, ma GPU0 ha solo a0 - per cui riceve a1 da GPU1 e a2 da GPU2, ricostruendo insieme tutte le parti del modello.</p>
+<p>In parallelo, GPU1 riceve la mini-batch x1 ed ha soltanto a1, ma richiede anche a0 e a2, per cui li ottiene da GPU0 e GPU2.</p>
+<p>Lo stesso avviene a GPU2 che riceve l’input x2. Riceve a0 e a1 da GPU0 e GPU1 e assieme al suo a2 ricostruisce l’intero tensore.</p>
+<p>Tutte e 3 le GPU ottengono i tensori completi ed il passaggio in avanti viene effettuato.</p>
+<p>Non appena i calcoli sono effettuati, i dati che non sono più necessari vengono rimossi - sono utilizzati soltanto durante il calcolo. La ricostruzione è effettuata in modo efficiente tramite un pre-fetch.</p>
+<p>L’intero procedimento è ripetuto per il layer Lb ed Lc nel passaggio in avanti, e poi all’indietro Lc -&gt; Lb -&gt; La.</p>
+<p>Sembra proprio un’efficiente strategia con cui distribuire i pesi:</p>
+<ol><li>La persona A porta la tenda,</li>
+<li>La persona B porta il fornello,</li>
+<li>La persona C porta l’ascia. </li></ol>
+<p>Ogni notte, condividono quello che hanno con gli altri e ricevono dagli altri quello che non hanno, e la mattina riprendono l’equipaggiamento a
+loro assegnato e continuano per la loro strada. Questo è lo Shared DDP / Zero DP.</p>
+<p>Comparando questa strategia con quella più semplice, in cui ogni persona si porta la propria tenda, fornello ed ascia, quest’ultima sarebbe molto più inefficiente.
+Questo è il DataParallel (DP e DDP) su Pytorch.</p>
+<p>Leggendo la letteratura su questo argomento, potrai incontrare i seguenti sinonimi: condiviso (shared), partizionato (partitioned).</p>
+<p>Se presti molta attenzione al metodo in cui ZeRO suddivide i pesi del modello, noterai che è molto simile alla parallelizzazione dei tensori
+che discuteremo più avanti. Questo perchè divide il peso di ogni layer, al contrario della parallelizzazione verticale che verrà discussa di seguito.</p>
+<p>Implementazione:</p>
+<ul><li><a href="https://www.deepspeed.ai/features/#the-zero-redundancy-optimizer" rel="nofollow">DeepSpeed</a> ZeRO-DP stages 1+2+3</li>
+<li><a href="https://github.com/facebookresearch/fairscale/#optimizer-state-sharding-zero" rel="nofollow">Fairscale</a> ZeRO-DP stages 1+2+3</li>
+<li><a href="main_classes/trainer#trainer-integrations">Integrazione <code>transformers</code></a></li></ul>
+<h2 class="relative group"><a id="parallelizzazione-ingenua-del-modello-verticale-e-parallelizzazione-di-pipeline" class="header-link block pr-1.5 text-lg no-hover:hidden with-hover:absolute with-hover:p-1.5 with-hover:opacity-0 with-hover:group-hover:opacity-100 with-hover:right-full" href="#parallelizzazione-ingenua-del-modello-verticale-e-parallelizzazione-di-pipeline"><span><svg class="" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 256"><path d="M167.594 88.393a8.001 8.001 0 0 1 0 11.314l-67.882 67.882a8 8 0 1 1-11.314-11.315l67.882-67.881a8.003 8.003 0 0 1 11.314 0zm-28.287 84.86l-28.284 28.284a40 40 0 0 1-56.567-56.567l28.284-28.284a8 8 0 0 0-11.315-11.315l-28.284 28.284a56 56 0 0 0 79.196 79.197l28.285-28.285a8 8 0 1 0-11.315-11.314zM212.852 43.14a56.002 56.002 0 0 0-79.196 0l-28.284 28.284a8 8 0 1 0 11.314 11.314l28.284-28.284a40 40 0 0 1 56.568 56.567l-28.285 28.285a8 8 0 0 0 11.315 11.314l28.284-28.284a56.065 56.065 0 0 0 0-79.196z" fill="currentColor"></path></svg></span></a>
+	<span>Parallelizzazione Ingenua del Modello (Verticale) e Parallelizzazione di Pipeline
+	</span></h2>
+
+<p>La Naive Model Parallelism (MP) si ha quando dividiamo parti dei layer di un modello su più GPU. Il meccanismo è relativamente semplice - i layer desiderati sono
+indirizzati ai dispositivi che desideriamo tramite <code>.to()</code> e ogniqualvolta i dati entrano ed escono dai layer, questi passano per lo stesso dispositivo e lasciano gli altri invariati.</p>
+<p>Ci riferiamo a questo metodo come MP Verticale, perchè se ricordiamo come la maggior parte dei modelli sono disegnati, stiamo dividendo i modelli in verticale.
+Ad esempio, il seguente diagramma mostra un modello con 8 layer:</p>
+
+	<div class="code-block relative"><div class="absolute top-2.5 right-4"><button class="inline-flex items-center relative text-sm focus:text-green-500 cursor-pointer focus:outline-none transition duration-200 ease-in-out opacity-0 mx-0.5   text-gray-600 " title="code excerpt" type="button"><svg class="" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="currentColor" focusable="false" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 32 32"><path d="M28,10V28H10V10H28m0-2H10a2,2,0,0,0-2,2V28a2,2,0,0,0,2,2H28a2,2,0,0,0,2-2V10a2,2,0,0,0-2-2Z" transform="translate(0)"></path><path d="M4,18H2V4A2,2,0,0,1,4,2H18V4H4Z" transform="translate(0)"></path><rect fill="none" width="32" height="32"></rect></svg>
+	<div class="absolute pointer-events-none transition-opacity bg-black text-white py-1 px-2 leading-tight rounded font-normal shadow left-1/2 top-full transform -translate-x-1/2 translate-y-2 opacity-0"><div class="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-black border-4 border-t-0" style="border-left-color: transparent; border-right-color: transparent; "></div>
+	Copied</div></button></div>
+	<pre><!-- HTML_TAG_START -->===================  ===================
+|<span class="hljs-string">  0 </span>|<span class="hljs-string"> 1 </span>|<span class="hljs-string"> 2 </span>|<span class="hljs-string"> 3  </span>|<span class="hljs-string">  </span>|<span class="hljs-string">  4 </span>|<span class="hljs-string"> 5 </span>|<span class="hljs-string"> 6 </span>|<span class="hljs-string"> 7  </span>|
+===================  ===================
+        gpu0                 gpu1<!-- HTML_TAG_END --></pre></div>
+<p>Abbiamo semplicemente diviso il modello in 2 in verticale, inserendo i layer da 0 a 3 nella GPU0 e da 4 a 7 nella GPU1.</p>
+<p>Finchè i dati viaggiano dal layer 0 a 1, da 1 a 2, da 2 a 3, questi percorrono il modello in modo tradizionale.
+Quando però i dati passano dal layer 3 al layer 4, deve viaggiare dalla GPU0 alla GPU1, introducendo un communication overhead.
+Se le GPU che partecipano sono sullo stesso nodo computazionale (ad esempio, la stessa macchina fisica), questo passaggio
+è piuttosto veloce, ma se le GPU si trovano in diversi nodi computazionali (ad esempio, su più macchine), il tempo richiesto per la comunicazione<br>
+potrebbe essere molto grande. </p>
+<p>Infine, il passaggio dal layer 4 al 5, al 6 ed infine al 7 tornano ad essere quelli del modello normale, e quando il passaggio al layer 7 è completato,
+spesso dobbiamo re-inviare i dati indietro al layer 0, in cui sono presenti le labels (oppure, dobbiamo far passare le labels all’ultimo layer).
+A questo punto, la funzione di perdita può essere calcolata e l’ottimizzatore può fare il suo lavoro.</p>
+<p>Problemi: </p>
+<ul><li>la principale lacuna del metodo, da cui il nome MP “ingenuo”, è che soltanto una GPU è attiva in ogni momento. Perciò, se 4 GPU sono utilizzate, è quasi identico a quadruplicare la quantità di memoria di una singola GPU, ignorando il resto dell’hardware. Inoltre, si aggiunge il costo di copiare i dati fra diversi dispositivi. Quindi 4x GPU da 6GB sarebbero in grado di accomodare la stessa dimensione di una GPU da 24GB, ma quest’ultima completerebbe l’allenamento in modo più veloce, dal momento che non ha il costo di copiare i dati. Ma, qualora dovessimo avere GPU da 40GB per contenere un modello da 45GB, questo metodo ci permetterebbe di eseguire l’allenamento.</li>
+<li>rappresentazioni (embedding) condivise potrebbero dover essere copiate avanti e indietro fra le GPU.</li></ul>
+<p>La parallelizzazione delle Pipeline (PP) è pressochè identica al metodo MP ingenuo, ma risolve il problema dell’utilizzo di una sola GPU alla volta, dividendo la batch di dati in entrata in mini-batches e creando artificialmente una pipeline che consente alle differenti GPU di partecipare congiuntamente al processo computazionale.</p>
+<p>La seguente immagine dal <a href="https://ai.googleblog.com/2019/03/introducing-gpipe-open-source-library.html" rel="nofollow">paper GPipe</a>
+mostra il MP ingenuo in alto ed il PP in basso:</p>
+<p><img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/parallelism-gpipe-bubble.png" alt="mp-pp"></p>
+<p>In basso nel diagramma possiamo facilmente notare come il PP ha meno tempi morti in cui le GPU non lavorano. Le parti in cui le GPU non lavorano sono spesso chiamate “bolle”.</p>
+<p>Il grado di parallelizzazione in entrambe le parti dei diagrammi è 4. Ciò significa che 4 GPU partecipano nel processo.
+Per cui abbiamo un percorso in avanti di 4 passaggi, F0, F1, F2 e F3, seguito da un passaggio all’indietro da B3, B2, B1 e B0.</p>
+<p>PP introduce un nuovo iperparametro da aggiustare: <code>chunks</code>, che definisce quanti blocchi di dati sono inviati allo stesso passaggio nella pipeline. Ad esempio,
+nel diagramma in basso possiamo vedere che <code>chunks=4</code>. GPU0 effettua lo stesso passaggio sui blocchi 0, 1, 2 e 3 (F0,0, F0,1, F0,2, F0,3) dopodichè
+attende che le altre GPU facciano il loro lavoro e, quando stanno per terminare, GPU0 ricomincia a lavorare per il passaggio all’indietro dei blocchi 3, 2, 1 e 0 (B0,3, B0,2, B0,1, B0,0).</p>
+<p>Notiamo inoltre che concettualmente, questo è lo stesso concetto di uno step di accumulazione del gradiente (GAS). Pytorch utilizza <code>chunks</code>
+mentre DeepSpeed si riferisce allo stesso iperparametro come GAS.</p>
+<p>A causa dei blocchi, PP introduce il concetto di micro-batches (MBS). DP divide la bath size globale in mini-batches, quindi se abbiamo un grado di DP pari a 4,
+una batch globale di dimensione 1024 vien divisa in 4 mini-batches da 256 ciascuna (1024/4). E se il numero di <code>chunks</code> (o GAS) è pari a 32, otteniamo
+una micro-batch di dimensione 8 (256/32). Ogni passaggio della Pipeline funziona con una sola micro-batch alla volta.</p>
+<p>Per calcolare la dimensione globale della batch di DP + PP possiamo eseguire: <code>mbs*chunks*dp_degree</code> (<code>8*32*4=1024</code>).</p>
+<p>Torniamo al diagramma.</p>
+<p>Con <code>chunks=1</code> otteniamo il MP ingenuo, che è molto inefficiente. Con valori <code>chunks</code> molto grandi, otteniamo micro-batch di dimensioni troppo piccole, che
+risultano anch’esse non efficienti. Occorre quindi sperimentare per trovare il valore che porta al più efficiente utilizzo delle GPU.</p>
+<p>Poichè il diagramma mostra che c’è una bolla di tempo “morto” che non può essere parallelizzato perchè l’ultimo passaggio <code>forward</code> deve aspettare il
+completamento del <code>backward</code>, lo scopo di trovare il miglior valore possibile per <code>chunks</code> sta nel consentire una buona collaborazione fra le GPU partecipanti,
+minimizzando la dimensione di questa bolla. </p>
+<p>Ci sono 2 gruppi di soluzione - i metodi tradizionali della API Pipeline e soluzioni più moderne che rendono le cose più semplici per l’utente finale.</p>
+<p>Soluzioni tradizionali della API Pipeline:</p>
+<ul><li>PyTorch</li>
+<li>FairScale</li>
+<li>DeepSpeed</li>
+<li>Megatron-LM</li></ul>
+<p>Soluzioni moderne:</p>
+<ul><li>Varuna</li>
+<li>Sagemaker</li></ul>
+<p>Problemi delle soluzioni tradizionali della API Pipeline: </p>
+<ul><li>richiede di modificare il modello piuttosto pesantemente, perchè Pipeline richiede di riscrivere il modello dei moduli in sequenze <code>nn.Sequential</code>, che potrebbero richiedere modifiche nel design del modello.</li>
+<li>al momento, l’API è molto limitata. Se hai diverse variabili python da inserire nel primo step della Pipeline, dovrai trovare un modo alternativo. Al momento, l’interfaccia Pipeline necessità o di un singolo tensore, o una tupla di tensori come unico input ed output. Questi tensori devono avere la batch size come prima dimensione, dal momento che la pipeline dividerà le mini-batches in micro-batches. Possibili miglioramenti sono in discussione qua: <a href="https://github.com/pytorch/pytorch/pull/50693" rel="nofollow">https://github.com/pytorch/pytorch/pull/50693</a></li>
+<li>il controllo del flusso condizionale al livello dei vari step della Pipeline non è possibile - ad esempio, modelli Encoder-Decoder come T5 richiedono speciali soluzioni per gestire i vari step di encoding condizionale.</li>
+<li>richiede di organizzare ciascun layer in modo che l’output di un modello diventi l’input dell’altro.</li></ul>
+<p>Necessitiamo ancora di sperimentare con Varuna e SageMaker, ma i loro paper riportano di aver superato la lista dei problemi menzionati in precedenza e dicono di richiedere cambiamenti molto minori nel modello dell’utente.</p>
+<p>Implementazioni:</p>
+<ul><li><a href="https://pytorch.org/docs/stable/pipeline.html" rel="nofollow">Pytorch</a> (supporto iniziale in pytorch-1.8, progressivamente migliorato in 1.9 e 1.10). Alcuni <a href="https://github.com/pytorch/pytorch/blob/master/benchmarks/distributed/pipeline/pipe.py" rel="nofollow">esempi</a>.</li>
+<li><a href="https://fairscale.readthedocs.io/en/latest/tutorials/pipe.html" rel="nofollow">FairScale</a></li>
+<li><a href="https://www.deepspeed.ai/tutorials/pipeline/" rel="nofollow">DeepSpeed</a></li>
+<li><a href="https://github.com/NVIDIA/Megatron-LM" rel="nofollow">Megatron-LM</a> ha un’implementazione interna - no API.</li>
+<li><a href="https://github.com/microsoft/varuna" rel="nofollow">Varuna</a></li>
+<li><a href="https://arxiv.org/abs/2111.05972" rel="nofollow">SageMaker</a> - questa è una soluzione proprietaria che può essere solo utilizata su AWS.</li>
+<li><a href="https://github.com/tunib-ai/oslo" rel="nofollow">OSLO</a> - questa implementazione è basata su Hugging Face Transformers.</li></ul>
+<p>🤗 Transformers status: al momento della scrittura di questa guida, nessuno dei modelli supporta full-PP. I modelli GPT2 e T5 hanno un supporto per il MP ingenuo.
+Il principale ostacolo è l’incapacità di convertire i modelli in <code>nn.Sequential</code> e che tutti gli input siano Tensori. Questo è dovuto al fatto che, al momento,
+i modelli includono molte features che rendono la conversione molto complicata, e necessitano di essere rimosse per raggiungere questo obiettivo.</p>
+<p>Altri approcci:</p>
+<p>DeepSpeed, Varuna e SageMaker usano il concetto di una <a href="https://docs.aws.amazon.com/sagemaker/latest/dg/model-parallel-core-features.html" rel="nofollow">Interleaved Pipeline</a>
+<img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/parallelism-sagemaker-interleaved-pipeline.png" alt="interleaved-pipeline-execution"></p>
+<p>Qua la bolla (tempi morti) è ulteriormente minimizzata prioritizzando i passaggi all’indietro.</p>
+<p>Varuna cerca ulteriormente di migliorare la struttura utilizzando simulazioni per individuare il più efficiente scheduling.</p>
+<p>OSLO ha una parallelizzazione di pipeline implementata basandosi su Transformers senza la conversione a <code>nn.Sequential</code>.</p>
+<h2 class="relative group"><a id="parallelizzazione-dei-tensori" class="header-link block pr-1.5 text-lg no-hover:hidden with-hover:absolute with-hover:p-1.5 with-hover:opacity-0 with-hover:group-hover:opacity-100 with-hover:right-full" href="#parallelizzazione-dei-tensori"><span><svg class="" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 256"><path d="M167.594 88.393a8.001 8.001 0 0 1 0 11.314l-67.882 67.882a8 8 0 1 1-11.314-11.315l67.882-67.881a8.003 8.003 0 0 1 11.314 0zm-28.287 84.86l-28.284 28.284a40 40 0 0 1-56.567-56.567l28.284-28.284a8 8 0 0 0-11.315-11.315l-28.284 28.284a56 56 0 0 0 79.196 79.197l28.285-28.285a8 8 0 1 0-11.315-11.314zM212.852 43.14a56.002 56.002 0 0 0-79.196 0l-28.284 28.284a8 8 0 1 0 11.314 11.314l28.284-28.284a40 40 0 0 1 56.568 56.567l-28.285 28.285a8 8 0 0 0 11.315 11.314l28.284-28.284a56.065 56.065 0 0 0 0-79.196z" fill="currentColor"></path></svg></span></a>
+	<span>Parallelizzazione dei Tensori
+	</span></h2>
+
+<p>Nella parallelizzazione dei tensori ogni GPU processa soltando una parte di un tensore ed aggrega il tensore completo soltanto per le operazioni che lo richiedono.</p>
+<p>In questa sezione usiamo concetti e diagrammi dal paper <a href="https://github.com/NVIDIA/Megatron-LM" rel="nofollow">Megatron-LM</a>: <a href="https://arxiv.org/abs/2104.04473" rel="nofollow">Efficient Large-Scale Language Model Training on GPU Clusters</a>.</p>
+<p>Il blocco principale di ogni modello transformer è un layer fully connected <code>nn.Linear</code> seguito da una funzione di attivazione non lineare <code>GeLU</code>.</p>
+<p>Seguento la notazione del paper di Megatron, possiamo scrivere il dot-product come <code>Y = GeLU(XA)</code>, dove <code>X</code> ed <code>Y</code> sono i vettori di input ed ouput ed <code>A</code> è la matrice dei pesi.</p>
+<p>Se osserviamo i calcoli in forma matriciale, è facile notare come la moltiplicazione fra matrici può essere suddivisa fra più GPU:
+<img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/parallelism-tp-parallel_gemm.png" alt="Parallel GEMM"></p>
+<p>Se dividiamo la matrice di pesi <code>A</code> in colonne, su <code>N</code>GPU e performiamo le moltiplicazioni fra matrici da <code>XA_1</code> a <code>XA_n</code> in parallelo, rimarremo con <code>N</code>
+vettori di output <code>Y_1, Y_2, ..., Y_n</code> che possono essere inviati a <code>GeLU</code> in modo indipendente:
+<img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/parallelism-tp-independent-gelu.png" alt="independent GeLU"></p>
+<p>Secondo questo principio, possiamo aggiornare un MLP di profondità arbitraria senza il bisogno di sincronizzare le GPU fino alla fine del procedimento,
+al termine del quale necessiteremo di ricostruire l’output dai singoli blocchi. Gli autori del paper Megatron-LM hanno realizzato un’illustrazione utile per questo:
+<img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/parallelism-tp-parallel_shard_processing.png" alt="parallel shard processing"></p>
+<p>Parallelizzare i layer di multi-head attention è perfino più semplice, dal momento che sono già per loro natura paralleli grazie al fatto che hanno più heads indipendenti!
+<img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/parallelism-tp-parallel_self_attention.png" alt="parallel self-attention"></p>
+<p>Considerazioni speciali: TP richiede una rete di GPU molto veloce, per cui non è suggeribile effettuare TP su più nodi (macchine).
+In pratica, se un nodo ha 4 GPU, il maggior grado di TP può essere 4. Se necessiti di un TP di grado 8, dovrai utilizzare nodi che hanno almeno 8 GPU.</p>
+<p>Questa sezione è basata sull’originale e molto più dettagliata  TP overview](<a href="https://github.com/huggingface/transformers/issues/10321#issuecomment-783543530" rel="nofollow">https://github.com/huggingface/transformers/issues/10321#issuecomment-783543530</a>).
+by <a href="https://github.com/anton-l" rel="nofollow">@anton-l</a>.</p>
+<p>SageMaker combina TP con DP per un processing più efficiente.</p>
+<p>Nomi alternativi: </p>
+<ul><li>DeepSpeed lo chiama <a href="https://www.deepspeed.ai/features/#model-parallelism" rel="nofollow">tensor slicing</a></li></ul>
+<p>Implementazioni:</p>
+<ul><li><a href="https://github.com/NVIDIA/Megatron-LM" rel="nofollow">Megatron-LM</a> ha un’implementazione interna, molto specifica per quel modello</li>
+<li><a href="https://github.com/tunib-ai/parallelformers" rel="nofollow">parallelformers</a> (al momento, solo per l’inferenza)</li>
+<li><a href="https://arxiv.org/abs/2111.05972" rel="nofollow">SageMaker</a> - soluzione proprietaria di AWS</li>
+<li><a href="https://github.com/tunib-ai/oslo" rel="nofollow">OSLO</a> ha un’implementazione di TP basata su Transformers.</li></ul>
+<p>🤗 Transformers status:</p>
+<ul><li>core: non ancora implementato</li>
+<li>ma se vuoi fare inferenza, <a href="https://github.com/tunib-ai/parallelformers" rel="nofollow">parallelformers</a> offre questo supporto per la maggior parte dei nostri modelli. Finchè questo non è implementato nella libreria princiaple, puoi usare questa libreria. Ci auguriamo anche che diventi disponibile in fase di allenamento oltre che per l’inferenza.</li>
+<li>Deepspeed-Inference supporta anche BERT, GPT-2 e GPT-Neo nella loro super-veloce modalità di inferenza basata su CUDA-kernel, vedi <a href="https://www.deepspeed.ai/tutorials/inference-tutorial/" rel="nofollow">qui</a></li></ul>
+<h2 class="relative group"><a id="dppp" class="header-link block pr-1.5 text-lg no-hover:hidden with-hover:absolute with-hover:p-1.5 with-hover:opacity-0 with-hover:group-hover:opacity-100 with-hover:right-full" href="#dppp"><span><svg class="" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 256"><path d="M167.594 88.393a8.001 8.001 0 0 1 0 11.314l-67.882 67.882a8 8 0 1 1-11.314-11.315l67.882-67.881a8.003 8.003 0 0 1 11.314 0zm-28.287 84.86l-28.284 28.284a40 40 0 0 1-56.567-56.567l28.284-28.284a8 8 0 0 0-11.315-11.315l-28.284 28.284a56 56 0 0 0 79.196 79.197l28.285-28.285a8 8 0 1 0-11.315-11.314zM212.852 43.14a56.002 56.002 0 0 0-79.196 0l-28.284 28.284a8 8 0 1 0 11.314 11.314l28.284-28.284a40 40 0 0 1 56.568 56.567l-28.285 28.285a8 8 0 0 0 11.315 11.314l28.284-28.284a56.065 56.065 0 0 0 0-79.196z" fill="currentColor"></path></svg></span></a>
+	<span>DP+PP
+	</span></h2>
+
+<p>Il seguente diagramma del <a href="https://www.deepspeed.ai/tutorials/pipeline/" rel="nofollow">tutorial di DeepSpeed</a> dimostra come combinare DP con PP.</p>
+<p><img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/parallelism-zero-dp-pp.png" alt="dp-pp-2d"></p>
+<p>Qua è importante notare come il rango 0 di DP non vede la GPU2 e il DP di rango 1 non vede la GPU3. Per il DP è come se ci fossero soltanto GPU0 e GPU1, ai
+quali passa i dati come se ci fossero solo 2 GPU. GPU0 “segretamente” passa parte del suo carico alla GPU2 tramite PP, e lo stesso vale per GPU1 con GPU3.</p>
+<p>Dal momento che ciascuna dimensione richiede almeno 2 GPU, in questo caso sarebbero necessarie almeno 4 GPU.</p>
+<p>Implementazioni:</p>
+<ul><li><a href="https://github.com/microsoft/DeepSpeed" rel="nofollow">DeepSpeed</a></li>
+<li><a href="https://github.com/NVIDIA/Megatron-LM" rel="nofollow">Megatron-LM</a></li>
+<li><a href="https://github.com/microsoft/varuna" rel="nofollow">Varuna</a></li>
+<li><a href="https://arxiv.org/abs/2111.05972" rel="nofollow">SageMaker</a></li>
+<li><a href="https://github.com/tunib-ai/oslo" rel="nofollow">OSLO</a></li></ul>
+<p>🤗 Transformers status: non ancora implementato.</p>
+<h2 class="relative group"><a id="dppptp" class="header-link block pr-1.5 text-lg no-hover:hidden with-hover:absolute with-hover:p-1.5 with-hover:opacity-0 with-hover:group-hover:opacity-100 with-hover:right-full" href="#dppptp"><span><svg class="" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 256"><path d="M167.594 88.393a8.001 8.001 0 0 1 0 11.314l-67.882 67.882a8 8 0 1 1-11.314-11.315l67.882-67.881a8.003 8.003 0 0 1 11.314 0zm-28.287 84.86l-28.284 28.284a40 40 0 0 1-56.567-56.567l28.284-28.284a8 8 0 0 0-11.315-11.315l-28.284 28.284a56 56 0 0 0 79.196 79.197l28.285-28.285a8 8 0 1 0-11.315-11.314zM212.852 43.14a56.002 56.002 0 0 0-79.196 0l-28.284 28.284a8 8 0 1 0 11.314 11.314l28.284-28.284a40 40 0 0 1 56.568 56.567l-28.285 28.285a8 8 0 0 0 11.315 11.314l28.284-28.284a56.065 56.065 0 0 0 0-79.196z" fill="currentColor"></path></svg></span></a>
+	<span>DP+PP+TP
+	</span></h2>
+
+<p>Per avere un allenamento ancora più efficiente, una parallelizzazione 3D può essere utilizzata, combinando TP, DP e PP. Possiamo osservarlo nel seguente diagramma:</p>
+<p><img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/parallelism-deepspeed-3d.png" alt="dp-pp-tp-3d"></p>
+<p>Questo diagramma è stato preso dal post <a href="https://www.microsoft.com/en-us/research/blog/deepspeed-extreme-scale-model-training-for-everyone/" rel="nofollow">3D parallelism: Scaling to trillion-parameter models</a>, che è una lettura interessante sull’argomento.</p>
+<p>Dal momento che ciascuan dimensione richiede almeno 2 GPU, in questo caso sono necessarie almeno 8 GPU.</p>
+<p>Implementazioni:</p>
+<ul><li><a href="https://github.com/microsoft/DeepSpeed" rel="nofollow">DeepSpeed</a> - DeepSpeed include anche una versione di DP più efficiente, chiamata ZeRO-DP.</li>
+<li><a href="https://github.com/NVIDIA/Megatron-LM" rel="nofollow">Megatron-LM</a></li>
+<li><a href="https://github.com/microsoft/varuna" rel="nofollow">Varuna</a></li>
+<li><a href="https://arxiv.org/abs/2111.05972" rel="nofollow">SageMaker</a></li>
+<li><a href="https://github.com/tunib-ai/oslo" rel="nofollow">OSLO</a></li></ul>
+<p>🤗 Transformers status: non ancora implementato, dato che non abbiamo ancora PP e TP.</p>
+<h2 class="relative group"><a id="zero-dppptp" class="header-link block pr-1.5 text-lg no-hover:hidden with-hover:absolute with-hover:p-1.5 with-hover:opacity-0 with-hover:group-hover:opacity-100 with-hover:right-full" href="#zero-dppptp"><span><svg class="" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 256"><path d="M167.594 88.393a8.001 8.001 0 0 1 0 11.314l-67.882 67.882a8 8 0 1 1-11.314-11.315l67.882-67.881a8.003 8.003 0 0 1 11.314 0zm-28.287 84.86l-28.284 28.284a40 40 0 0 1-56.567-56.567l28.284-28.284a8 8 0 0 0-11.315-11.315l-28.284 28.284a56 56 0 0 0 79.196 79.197l28.285-28.285a8 8 0 1 0-11.315-11.314zM212.852 43.14a56.002 56.002 0 0 0-79.196 0l-28.284 28.284a8 8 0 1 0 11.314 11.314l28.284-28.284a40 40 0 0 1 56.568 56.567l-28.285 28.285a8 8 0 0 0 11.315 11.314l28.284-28.284a56.065 56.065 0 0 0 0-79.196z" fill="currentColor"></path></svg></span></a>
+	<span>ZeRO DP+PP+TP
+	</span></h2>
+
+<p>Una delle funzionalità principali di DeepSpeed è ZeRO, che è un’estensione super scalabile di DP. Questa è già stata discussa in <a href="#zero-data-parallelism">ZeRO Data Parallelism</a>.
+Normalmente, è una funzionalità a sè stante, che non richiede PP o TP, ma può essere combinata con PP e TP.</p>
+<p>Quando ZeRO-DP è combinata con PP (e opzionalmente TP) tipicalmente permette soltanto ZeRO stage 1 (optimizer sharding).</p>
+<p>Sebbene sia teoricamente possibile utilizzare ZeRO stage 2 (gradient sharding) con la parallelizzazione della Pipeline, questo porta a impatti negativi sulla performance.
+Sarebbe necessario avere un addizionale riduttore di dispersione per ogni micro-batch per ri-aggregare i gradienti prima di dividerli, che aggiunge un overhead di comunicazione
+potenzialmente molto significativo. Per natura del PP, vengono utilizzate delle piccole micro-batches e invece lo scopo è bilanciare l’intensità aritmetica (micro-batch size) con
+la minimizzazione della bolla della Pipeline (numero di micro-batches). Per cui, i costi di comunicazione cresceranno.</p>
+<p>Inoltre, ci sono già meno layer del solito grazie al PP, per cui il risparmio in termini di memoria non risulta particolarmente rilevante.
+PP riduce già il gradiente di  <code>1/PP</code>, per cui il risparmio ottenuto dividendo i gradienti sono meno significativi rispetto al puro DP.</p>
+<p>Allo stesso modo, ZeRO stage 3 non è una buona scelta per lo stesso motivo - più comunicazioni fra nodi sono richieste.</p>
+<p>Dal momento che abbiamo ZeRO, un altro beneficio è lo ZeRO-Offload. Dal momento che questo è uno stage 1 optimizer, possiamo scaricare in CPU gli stati del modello.</p>
+<p>Implementazioni:</p>
+<ul><li><a href="https://github.com/microsoft/Megatron-DeepSpeed" rel="nofollow">Megatron-DeepSpeed</a> e <a href="https://github.com/bigscience-workshop/Megatron-DeepSpeed" rel="nofollow">Megatron-Deepspeed from BigScience</a>, che è una fork della repo precedente.</li>
+<li><a href="https://github.com/tunib-ai/oslo" rel="nofollow">OSLO</a></li></ul>
+<p>Paper importanti:</p>
+<ul><li><a href="https://arxiv.org/abs/2201.11990" rel="nofollow">Using DeepSpeed and Megatron to Train Megatron-Turing NLG 530B, A Large-Scale Generative Language Model</a></li></ul>
+<p>🤗 Transformers status: non ancora implementato, dal momento che non abbiamo ancora PP e TP.</p>
+<h2 class="relative group"><a id="flexflow" class="header-link block pr-1.5 text-lg no-hover:hidden with-hover:absolute with-hover:p-1.5 with-hover:opacity-0 with-hover:group-hover:opacity-100 with-hover:right-full" href="#flexflow"><span><svg class="" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 256"><path d="M167.594 88.393a8.001 8.001 0 0 1 0 11.314l-67.882 67.882a8 8 0 1 1-11.314-11.315l67.882-67.881a8.003 8.003 0 0 1 11.314 0zm-28.287 84.86l-28.284 28.284a40 40 0 0 1-56.567-56.567l28.284-28.284a8 8 0 0 0-11.315-11.315l-28.284 28.284a56 56 0 0 0 79.196 79.197l28.285-28.285a8 8 0 1 0-11.315-11.314zM212.852 43.14a56.002 56.002 0 0 0-79.196 0l-28.284 28.284a8 8 0 1 0 11.314 11.314l28.284-28.284a40 40 0 0 1 56.568 56.567l-28.285 28.285a8 8 0 0 0 11.315 11.314l28.284-28.284a56.065 56.065 0 0 0 0-79.196z" fill="currentColor"></path></svg></span></a>
+	<span>FlexFlow
+	</span></h2>
+
+<p><a href="https://github.com/flexflow/FlexFlow" rel="nofollow">FlexFlow</a> risolve il problema di parallelizzazione in un approccio leggermente diverso.</p>
+<p>Paper: <a href="https://arxiv.org/abs/1807.05358" rel="nofollow">“Beyond Data and Model Parallelism for Deep Neural Networks” by Zhihao Jia, Matei Zaharia, Alex Aiken</a></p>
+<p>Effettua una sorta di parallelizzazione 4D su Campione-Operatore-Attributi-Parametri:</p>
+<ol><li>Campione = Data Parallelism (parallelizzazione per campione)</li>
+<li>Operatore = Parallelizza una singola operazione in più sotto-operazioni</li>
+<li>Attributi = Data Parallelism (parallelizzazione length-wise)</li>
+<li>Parametri = Model Parallelism (a prescindere dalla dimensione, orizzontale o verticale)</li></ol>
+<p>Esempi:</p>
+<ul><li>Campione</li></ul>
+<p>Prendiamo 10 batches di lunghezza 512, 10 x 512. Se parallelizzate su due dispositivi, otteniamo 5 x 2 x 512.</p>
+<ul><li>Operatore</li></ul>
+<p>Se effettuiamo l’operazione di normalizzazione per i layer, possiamo calcolare prima la deviazione standard, poi la media, e poi normalizzare i dati.
+Parallelizzare per operatore consente di calcolare la deviazione standard e la media in parallelo. Per cui se li parallelizzassimo fra due dispositivi
+(cuda:0, cuda:1), possiamo prima copiare i dati in entrambi i dispositivi, dopodichè cuda:0 calcola la deviazione standard e cuda:1 calcola la media allo stesso tempo.</p>
+<ul><li>Attributi</li></ul>
+<p>Se abbiamo 10 batches di lunghezza 512, parallelizzandoli per la dimensione degli attributi otteniamo 10 x 2 x 256.</p>
+<ul><li>Parametri</li></ul>
+<p>Funziona in modo simile alla parallelizzazione dei tensori o alla parallelizzazione ingenua dei layer.</p>
+<p><img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/parallelism-flexflow.jpeg" alt="flex-flow-soap"></p>
+<p>L’importanza di questo framweork è che prende risorse come (1) GPU/TPU/CPU vs. (2) RAM/DRAM vs. (3) inter-connessioni veloci/inter-connessioni lente ed
+automaticamente le ottimizza tramite un algoritmo, che decide quale parallelizzazione usare.</p>
+<p>Un aspetto molto importante è che FlexFlow è pensato per ottimizzare parallelizzazioni per modelli con carichi di lavoro statici e fissati,poichè
+modelli dinamici potrebbero preferire differenti strategie di parallelizzazione fra le differenti iterazioni.</p>
+<p>La promessa è molto invitante - effettua una simulazione di 30 minuti su un cluster ed elabora la miglior strategia da utilizzare per l’ambiente specifico.
+Se qualche parte venisse aggiunta/rimossa/modificata, l’algoritmo ri-parte e ri-ottimizza il piano di parallelizzazione, dopodichè potrai tornare ad allenare il modello.
+Ciascuna impostazione avrà la sua ottimizzazione specifica.</p>
+<p>🤗 Transformers status: non ancora implementato. Abbiamo modelli FX-trace-able in <a href="https://github.com/huggingface/transformers/blob/main/src/transformers/utils/fx.py" rel="nofollow">transformers.utils.fx</a>,
+che è un prerequisito per utilizzare FlexFlow, perciò qualcuno dovrà capire cosa è necessario fare per far funzionare FlexFlow con i nostri modelli.</p>
+<h2 class="relative group"><a id="quale-strategia-usare-e-quando" class="header-link block pr-1.5 text-lg no-hover:hidden with-hover:absolute with-hover:p-1.5 with-hover:opacity-0 with-hover:group-hover:opacity-100 with-hover:right-full" href="#quale-strategia-usare-e-quando"><span><svg class="" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 256"><path d="M167.594 88.393a8.001 8.001 0 0 1 0 11.314l-67.882 67.882a8 8 0 1 1-11.314-11.315l67.882-67.881a8.003 8.003 0 0 1 11.314 0zm-28.287 84.86l-28.284 28.284a40 40 0 0 1-56.567-56.567l28.284-28.284a8 8 0 0 0-11.315-11.315l-28.284 28.284a56 56 0 0 0 79.196 79.197l28.285-28.285a8 8 0 1 0-11.315-11.314zM212.852 43.14a56.002 56.002 0 0 0-79.196 0l-28.284 28.284a8 8 0 1 0 11.314 11.314l28.284-28.284a40 40 0 0 1 56.568 56.567l-28.285 28.285a8 8 0 0 0 11.315 11.314l28.284-28.284a56.065 56.065 0 0 0 0-79.196z" fill="currentColor"></path></svg></span></a>
+	<span>Quale Strategia Usare e Quando
+	</span></h2>
+
+<p>Segue uno schema molto approssimativo di quale strategia di parallelizzazione usare e quando. Il primo di ogni lista è tipicamente il più veloce.</p>
+<p><strong>⇨ Una sola GPU</strong></p>
+<ul><li><p>Se il modello riesce a stare dentro una singola GPU: </p>
+<ol><li>Utilizzo normale </li></ol></li>
+<li><p>Se il modello non riesce a stare dentro una singola GPU:</p>
+<ol><li>ZeRO + Offload CPU e opzionalmente NVMe</li>
+<li>come sopra, più Memory Centric Tiling (vedi sotto per maggiori dettagli) se il layer più grande non riesce a stare in una singola GPU</li></ol></li>
+<li><p>Se il layer più grande non riesce a stare dentro una singola GPU:</p></li></ul>
+<ol><li>ZeRO - Attiva <a href="https://deepspeed.readthedocs.io/en/latest/zero3.html#memory-centric-tiling" rel="nofollow">Memory Centric Tiling</a> (MCT). Consente di allenare layer arbitrariamente grandi dividendoli ed eseguendoli sequenzialmente. MCT riduce il numero di parametri attivi in una GPU, ma non ha effetto sulla memoria di attivazione. Dal momento che questa necessità è molto rara, nel momento in cui scriviamo questa guida spetta all’utente effettuare una sovrascrizione manuale di <code>torch.nn.Linear</code>.</li></ol>
+<p><strong>⇨ Un solo nodo / Multi-GPU</strong></p>
+<ul><li><p>Se il modello riesce a stare dentro una singola GPU:</p>
+<ol><li>DDP - DP distribuito</li>
+<li>ZeRO - potrebbe o meno essere più veloce a seconda della configurazione utilizzata</li></ol></li>
+<li><p>Se il modello non riesce a stare dentro una singola GPU:</p>
+<ol><li><p>PP</p></li>
+<li><p>ZeRO</p></li>
+<li><p>TP</p>
+<p>Con connettività fra nodi ultraveloce (NVLINK o NVSwitch) tutti e tre i metodi dovrebbero essere prevalentemente alla pari, senza questi invece il PP dovrebbe essere il più veloce. Il grado di TP potrebbe inoltre  fare la differenza. Il metodo migliore sta nello sperimentare finchè non troverai il miglior metodo per le tue impostazioni.</p>
+<p>TP è quasi sempre utilizzato all’interno dello stesso nodo. Per cui, dimensione del TP &lt;= GPU di ciascun nodo.</p></li></ol></li>
+<li><p>Se il layer più grande non riesce a stare dentro una singola GPU:</p>
+<ol><li>Se non utilizzi ZeRO - devi utilizzare TP dal momento che PP da solo non sarà in grado di far stare il layer nella GPU.</li>
+<li>Con ZeRO vedi il punto precedente “Una sola GPU” </li></ol></li></ul>
+<p><strong>⇨ Multi-Node / Multi-GPU</strong></p>
+<ul><li><p>Se hai una veloce connettività fra nodi:</p>
+<ol><li>ZeRO - poichè non richiede pressochè alcuna modifica al modello</li>
+<li>PP+TP+DP - meno comunicazioni, ma richiede importanti modifiche al modello</li></ol></li>
+<li><p>Se hai una connettività fra nodi lenta e una memoria GPU scarsa:  </p>
+<ol><li>DP+PP+TP+ZeRO-1</li></ol></li></ul>
+
+
+		<script type="module" data-hydrate="5pivmn">
+		import { start } from "/docs/transformers/pr_18301/it/_app/start-hf-doc-builder.js";
+		start({
+			target: document.querySelector('[data-hydrate="5pivmn"]').parentNode,
+			paths: {"base":"/docs/transformers/pr_18301/it","assets":"/docs/transformers/pr_18301/it"},
+			session: {},
+			route: false,
+			spa: false,
+			trailing_slash: "never",
+			hydrate: {
+				status: 200,
+				error: null,
+				nodes: [
+					import("/docs/transformers/pr_18301/it/_app/pages/__layout.svelte-hf-doc-builder.js"),
+						import("/docs/transformers/pr_18301/it/_app/pages/parallelism.mdx-hf-doc-builder.js")
+				],
+				params: {}
+			}
+		});
+	</script>

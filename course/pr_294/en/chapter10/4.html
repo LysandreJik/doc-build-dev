@@ -1,0 +1,401 @@
+<meta charset="utf-8" /><meta http-equiv="content-security-policy" content=""><meta name="hf:doc:metadata" content="{&quot;local&quot;:&quot;automatically-recognising-speech&quot;,&quot;sections&quot;:[{&quot;local&quot;:&quot;how-to-choose-a-dataset&quot;,&quot;sections&quot;:[{&quot;local&quot;:&quot;1-number-of-hours&quot;,&quot;title&quot;:&quot;1. Number of hours&quot;},{&quot;local&quot;:&quot;2-domain&quot;,&quot;title&quot;:&quot;2. Domain&quot;},{&quot;local&quot;:&quot;3-speaking-style&quot;,&quot;title&quot;:&quot;3. Speaking style&quot;},{&quot;local&quot;:&quot;4-transcription-style&quot;,&quot;title&quot;:&quot;4. Transcription style&quot;}],&quot;title&quot;:&quot;How to choose a dataset&quot;},{&quot;local&quot;:&quot;how-to-load-an-audio-dataset&quot;,&quot;title&quot;:&quot;How to load an audio dataset&quot;},{&quot;local&quot;:&quot;models-for-speech-recognition&quot;,&quot;sections&quot;:[{&quot;local&quot;:&quot;preprocessing-the-data&quot;,&quot;title&quot;:&quot;Preprocessing the data&quot;},{&quot;local&quot;:&quot;metrics-for-speech-recognition&quot;,&quot;title&quot;:&quot;Metrics for speech recognition&quot;},{&quot;local&quot;:&quot;finetuning-a-speech-recognition-system-with-the-trainer-api&quot;,&quot;title&quot;:&quot;Fine-tuning a speech recognition system with the Trainer API&quot;}],&quot;title&quot;:&quot;Models for speech recognition&quot;}],&quot;title&quot;:&quot;Automatically recognising speech&quot;}" data-svelte="svelte-1phssyn">
+	<link rel="modulepreload" href="/docs/course/pr_294/en/_app/assets/pages/__layout.svelte-hf-doc-builder.css">
+	<link rel="modulepreload" href="/docs/course/pr_294/en/_app/start-hf-doc-builder.js">
+	<link rel="modulepreload" href="/docs/course/pr_294/en/_app/chunks/vendor-hf-doc-builder.js">
+	<link rel="modulepreload" href="/docs/course/pr_294/en/_app/chunks/paths-hf-doc-builder.js">
+	<link rel="modulepreload" href="/docs/course/pr_294/en/_app/pages/__layout.svelte-hf-doc-builder.js">
+	<link rel="modulepreload" href="/docs/course/pr_294/en/_app/pages/chapter10/4.mdx-hf-doc-builder.js">
+	<link rel="modulepreload" href="/docs/course/pr_294/en/_app/chunks/IconCopyLink-hf-doc-builder.js">
+	<link rel="modulepreload" href="/docs/course/pr_294/en/_app/chunks/CodeBlock-hf-doc-builder.js"> 
+
+
+
+
+
+<h1 class="relative group"><a id="automatically-recognising-speech" class="header-link block pr-1.5 text-lg no-hover:hidden with-hover:absolute with-hover:p-1.5 with-hover:opacity-0 with-hover:group-hover:opacity-100 with-hover:right-full" href="#automatically-recognising-speech"><span><svg class="" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 256"><path d="M167.594 88.393a8.001 8.001 0 0 1 0 11.314l-67.882 67.882a8 8 0 1 1-11.314-11.315l67.882-67.881a8.003 8.003 0 0 1 11.314 0zm-28.287 84.86l-28.284 28.284a40 40 0 0 1-56.567-56.567l28.284-28.284a8 8 0 0 0-11.315-11.315l-28.284 28.284a56 56 0 0 0 79.196 79.197l28.285-28.285a8 8 0 1 0-11.315-11.314zM212.852 43.14a56.002 56.002 0 0 0-79.196 0l-28.284 28.284a8 8 0 1 0 11.314 11.314l28.284-28.284a40 40 0 0 1 56.568 56.567l-28.285 28.285a8 8 0 0 0 11.315 11.314l28.284-28.284a56.065 56.065 0 0 0 0-79.196z" fill="currentColor"></path></svg></span></a>
+	<span>Automatically recognising speech
+	</span></h1>
+
+<p>In this section, we’ll take a look at how Transformers can be used to convert spoken speech into text, a task known <em>speech recognition</em>.</p>
+<p>TODO: insert Speech -&gt; Model -&gt; Text diagram</p>
+<p>Speech recognition, also known as automatic speech recognition (ASR) or speech-to-text (STT), is one of the most popular and exciting spoken language processing tasks. It’s used in a wide range of applications, including dictation, voice assistants, video captioning and meeting transcriptions.</p>
+<p>You’ve probably made use of a speech recognition system many times before without realising! Consider the digital assistant in your smartphone device (Siri, Google Assistant, Alexa). When you use these assistants, the first thing that they do is transcribe your spoken speech to written text, ready to be used for any downstream tasks.</p>
+<p>Image: <a href="https://images.app.goo.gl/J6SU6RYryXXVT9uj7" rel="nofollow">https://images.app.goo.gl/J6SU6RYryXXVT9uj7</a>
+Demo: <a href="https://huggingface.co/facebook/wav2vec2-base-960h" rel="nofollow">https://huggingface.co/facebook/wav2vec2-base-960h</a></p>
+<p>Speech recognition is challenging as it requires joint knowledge of audio and text. The input audio might have lots of background noise, making it difficult to pick-out the spoken speech. The written text might have characters which don’t have an acoustic sound, such as punctuation, which are difficult to infer from audio alone. These are all hurdles we’ll have to tackle when building effective speech recognition systems.</p>
+<p>[//]: # Speech recognition is challenging as it requires a model to leverage knowledge about two domains concurrently: the input audio and the output text. Systems need to extract the relevant features from the input audio, possibly disentangling the spoken speech from background noise. From these features, they must then infer the contextual relation of words and sentences to form accurate and coherent sentences.</p>
+<p>Now that we’ve defined our task, we can begin looking into speech recognition in more detail. Specifically, we’ll cover:</p>
+<ul><li>How to choose a dataset</li>
+<li>How to load a dataset</li>
+<li>What models we can use</li>
+<li>How to prepare audio-text data</li>
+<li>Metrics for speech recognition</li>
+<li>How to fine-tune an ASR system with the Trainer API</li></ul>
+<h3 class="relative group"><a id="how-to-choose-a-dataset" class="header-link block pr-1.5 text-lg no-hover:hidden with-hover:absolute with-hover:p-1.5 with-hover:opacity-0 with-hover:group-hover:opacity-100 with-hover:right-full" href="#how-to-choose-a-dataset"><span><svg class="" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 256"><path d="M167.594 88.393a8.001 8.001 0 0 1 0 11.314l-67.882 67.882a8 8 0 1 1-11.314-11.315l67.882-67.881a8.003 8.003 0 0 1 11.314 0zm-28.287 84.86l-28.284 28.284a40 40 0 0 1-56.567-56.567l28.284-28.284a8 8 0 0 0-11.315-11.315l-28.284 28.284a56 56 0 0 0 79.196 79.197l28.285-28.285a8 8 0 1 0-11.315-11.314zM212.852 43.14a56.002 56.002 0 0 0-79.196 0l-28.284 28.284a8 8 0 1 0 11.314 11.314l28.284-28.284a40 40 0 0 1 56.568 56.567l-28.285 28.285a8 8 0 0 0 11.315 11.314l28.284-28.284a56.065 56.065 0 0 0 0-79.196z" fill="currentColor"></path></svg></span></a>
+	<span>How to choose a dataset
+	</span></h3>
+
+As with any machine learning problem, our model is only as good as the data that we train it on. Speech recognition datasets vary considerably in how they are curated and the domains that they cover. To pick the right dataset, we need to match our criteria with the features that a dataset offers.
+<p>Before we pick a dataset, we first need to understand some of the key defining features.</p>
+<h4 class="relative group"><a id="1-number-of-hours" class="header-link block pr-1.5 text-lg no-hover:hidden with-hover:absolute with-hover:p-1.5 with-hover:opacity-0 with-hover:group-hover:opacity-100 with-hover:right-full" href="#1-number-of-hours"><span><svg class="" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 256"><path d="M167.594 88.393a8.001 8.001 0 0 1 0 11.314l-67.882 67.882a8 8 0 1 1-11.314-11.315l67.882-67.881a8.003 8.003 0 0 1 11.314 0zm-28.287 84.86l-28.284 28.284a40 40 0 0 1-56.567-56.567l28.284-28.284a8 8 0 0 0-11.315-11.315l-28.284 28.284a56 56 0 0 0 79.196 79.197l28.285-28.285a8 8 0 1 0-11.315-11.314zM212.852 43.14a56.002 56.002 0 0 0-79.196 0l-28.284 28.284a8 8 0 1 0 11.314 11.314l28.284-28.284a40 40 0 0 1 56.568 56.567l-28.285 28.285a8 8 0 0 0 11.315 11.314l28.284-28.284a56.065 56.065 0 0 0 0-79.196z" fill="currentColor"></path></svg></span></a>
+	<span>1. Number of hours
+	</span></h4>
+
+Simply put, the number of training hours indicates how large the dataset is. It’s analogous to the number of training examples in an NLP dataset. However, bigger datasets aren’t necessarily better. If we want a model that generalises well, we want a diverse dataset with lots of different speakers, domains and speaking styles.
+<h4 class="relative group"><a id="2-domain" class="header-link block pr-1.5 text-lg no-hover:hidden with-hover:absolute with-hover:p-1.5 with-hover:opacity-0 with-hover:group-hover:opacity-100 with-hover:right-full" href="#2-domain"><span><svg class="" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 256"><path d="M167.594 88.393a8.001 8.001 0 0 1 0 11.314l-67.882 67.882a8 8 0 1 1-11.314-11.315l67.882-67.881a8.003 8.003 0 0 1 11.314 0zm-28.287 84.86l-28.284 28.284a40 40 0 0 1-56.567-56.567l28.284-28.284a8 8 0 0 0-11.315-11.315l-28.284 28.284a56 56 0 0 0 79.196 79.197l28.285-28.285a8 8 0 1 0-11.315-11.314zM212.852 43.14a56.002 56.002 0 0 0-79.196 0l-28.284 28.284a8 8 0 1 0 11.314 11.314l28.284-28.284a40 40 0 0 1 56.568 56.567l-28.285 28.285a8 8 0 0 0 11.315 11.314l28.284-28.284a56.065 56.065 0 0 0 0-79.196z" fill="currentColor"></path></svg></span></a>
+	<span>2. Domain
+	</span></h4>
+
+The domain entails where the data was sourced from, whether it be audiobooks, podcasts, YouTube or financial meetings. Each domain has a different distribution of data. For example, audiobooks are recorded in high-quality studio conditions (with no background noise) and text that is taken from written literature. Whereas for YouTube, the audio likely contains more background noise and a more informal style of writing.
+<p>We need to match our domain to the conditions we anticipate at inference time. For instance, if we train our model on audiobooks, we can’t expect our model to perform well in noisy environments.</p>
+<h4 class="relative group"><a id="3-speaking-style" class="header-link block pr-1.5 text-lg no-hover:hidden with-hover:absolute with-hover:p-1.5 with-hover:opacity-0 with-hover:group-hover:opacity-100 with-hover:right-full" href="#3-speaking-style"><span><svg class="" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 256"><path d="M167.594 88.393a8.001 8.001 0 0 1 0 11.314l-67.882 67.882a8 8 0 1 1-11.314-11.315l67.882-67.881a8.003 8.003 0 0 1 11.314 0zm-28.287 84.86l-28.284 28.284a40 40 0 0 1-56.567-56.567l28.284-28.284a8 8 0 0 0-11.315-11.315l-28.284 28.284a56 56 0 0 0 79.196 79.197l28.285-28.285a8 8 0 1 0-11.315-11.314zM212.852 43.14a56.002 56.002 0 0 0-79.196 0l-28.284 28.284a8 8 0 1 0 11.314 11.314l28.284-28.284a40 40 0 0 1 56.568 56.567l-28.285 28.285a8 8 0 0 0 11.315 11.314l28.284-28.284a56.065 56.065 0 0 0 0-79.196z" fill="currentColor"></path></svg></span></a>
+	<span>3. Speaking style
+	</span></h4>
+
+The speaking style falls into one of two categories:
+* Narrated: read from a script
+* Spontaneous: un-scripted, conversational speech
+<p>The audio and text data reflect the style of speaking. Since narrated text is scripted, it tends to be spoken articulately and without any errors:</p>
+<p>“Consider the task of training a model on a speech recognition dataset”</p>
+<p>Whereas for spontaneous speech, we can expect a more colloquial style of speech, with the inclusion of repetitions, hesitations and false-starts:</p>
+<p>“Let’s &lt;uhm&gt; take a look at how &lt;silence&gt; you’d you’d go about training a model on &lt;uhm&gt; a sp- speech recognition dataset” (this is an extreme example)</p>
+<h4 class="relative group"><a id="4-transcription-style" class="header-link block pr-1.5 text-lg no-hover:hidden with-hover:absolute with-hover:p-1.5 with-hover:opacity-0 with-hover:group-hover:opacity-100 with-hover:right-full" href="#4-transcription-style"><span><svg class="" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 256"><path d="M167.594 88.393a8.001 8.001 0 0 1 0 11.314l-67.882 67.882a8 8 0 1 1-11.314-11.315l67.882-67.881a8.003 8.003 0 0 1 11.314 0zm-28.287 84.86l-28.284 28.284a40 40 0 0 1-56.567-56.567l28.284-28.284a8 8 0 0 0-11.315-11.315l-28.284 28.284a56 56 0 0 0 79.196 79.197l28.285-28.285a8 8 0 1 0-11.315-11.314zM212.852 43.14a56.002 56.002 0 0 0-79.196 0l-28.284 28.284a8 8 0 1 0 11.314 11.314l28.284-28.284a40 40 0 0 1 56.568 56.567l-28.285 28.285a8 8 0 0 0 11.315 11.314l28.284-28.284a56.065 56.065 0 0 0 0-79.196z" fill="currentColor"></path></svg></span></a>
+	<span>4. Transcription style
+	</span></h4>
+
+Whether the text has punctuation, casing or both. If we want a system to generate fully formatted text that could be used for a publication or meeting transcription, we require training data with punctuation and casing. If we just require the spoken words in an unformatted structure, neither punctuation nor casing are necessary.
+<p>A summary of datasets on the HF Hub:</p>
+<table><thead><tr><th></th>
+<th>Train Hours</th>
+<th>Domain</th>
+<th>Speaking Style</th>
+<th>Transcription Casing</th>
+<th>Transcription Punctuation</th>
+<th>Recommended Usage</th></tr></thead>
+<tbody><tr><td>LibriSpeech</td>
+<td>960</td>
+<td>Audiobooks</td>
+<td>Narrated</td>
+<td>❌</td>
+<td>❌</td>
+<td>Academic benchmarks</td></tr>
+<tr><td>Common Voice 9</td>
+<td>2224</td>
+<td>Wikipedia text + crowd-sourced speech</td>
+<td>Narrated</td>
+<td>✅</td>
+<td>✅</td>
+<td>Day-to-day speech</td></tr>
+<tr><td>TEDLIUM</td>
+<td>452</td>
+<td>TED talks</td>
+<td>Narrated</td>
+<td>❌</td>
+<td>❌</td>
+<td>Technical scientific, political and social topics</td></tr>
+<tr><td>Voxpopuli</td>
+<td>543</td>
+<td>European Parliament recordings</td>
+<td>Spontaneous</td>
+<td>❌</td>
+<td>❌</td>
+<td>Non-native English speakers</td></tr>
+<tr><td>GigaSpeech</td>
+<td>10000</td>
+<td>Audiobook, podcast, youtube</td>
+<td>Narrated &amp; spontaneous</td>
+<td>❌</td>
+<td>✅</td>
+<td>Robustness over multiple domains</td></tr>
+<tr><td>SPGISpeech</td>
+<td>5000</td>
+<td>Financial meetings</td>
+<td>Narrated &amp; spontaneous</td>
+<td>✅</td>
+<td>✅</td>
+<td>Fully formatted transcriptions</td></tr></tbody></table>
+<p>Let’s take an example where we want to train a speech recognition system to transcribe speech on the topic of machine learning (highly relevant!). Our speech is going to be narrated (scripted), and we’re not worried about punctuation or casing on our text output. From our reference table, it looks like TED-LIUM is a good choice of dataset!</p>
+<p>[//]: # On review, this sub-section might be too involved. Happy to omit it and dive straight into how to load a dataset.</p>
+<h3 class="relative group"><a id="how-to-load-an-audio-dataset" class="header-link block pr-1.5 text-lg no-hover:hidden with-hover:absolute with-hover:p-1.5 with-hover:opacity-0 with-hover:group-hover:opacity-100 with-hover:right-full" href="#how-to-load-an-audio-dataset"><span><svg class="" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 256"><path d="M167.594 88.393a8.001 8.001 0 0 1 0 11.314l-67.882 67.882a8 8 0 1 1-11.314-11.315l67.882-67.881a8.003 8.003 0 0 1 11.314 0zm-28.287 84.86l-28.284 28.284a40 40 0 0 1-56.567-56.567l28.284-28.284a8 8 0 0 0-11.315-11.315l-28.284 28.284a56 56 0 0 0 79.196 79.197l28.285-28.285a8 8 0 1 0-11.315-11.314zM212.852 43.14a56.002 56.002 0 0 0-79.196 0l-28.284 28.284a8 8 0 1 0 11.314 11.314l28.284-28.284a40 40 0 0 1 56.568 56.567l-28.285 28.285a8 8 0 0 0 11.315 11.314l28.284-28.284a56.065 56.065 0 0 0 0-79.196z" fill="currentColor"></path></svg></span></a>
+	<span>How to load an audio dataset
+	</span></h3>
+
+Before we can handle any audio datasets, we need to make sure we have the right dependencies installed. Specifically, we&#39;ll need the &quot;Audio&quot; feature from datasets: https://huggingface.co/docs/datasets/installation#audio. This should take care of the main Python packages we need to read audio files from byte form and convert them to arrays.
+<p>Right! Now we’re ready to go ahead and download our data. For this tutorial, we’ll use the <a href="https://huggingface.co/datasets/librispeech_asr" rel="nofollow"><em>LibriSpeech ASR</em></a> corpus. LibriSpeech is one of the most popular datasets for benchmarking speech recognition systems in both academia and industry. It consists of approximately 1000 hours of narrated audiobooks collected from the (LibriVox)[https://librivox.org/] project.</p>
+<p>Let’s take a look at the all-time leaderboard on Papers with Code to get a feel for numbers: <a href="https://paperswithcode.com/sota/speech-recognition-on-librispeech-test-clean" rel="nofollow">https://paperswithcode.com/sota/speech-recognition-on-librispeech-test-clean</a>
+We can see that there’s been tremendous progress on the LibriSpeech benchmark in the last three years, with many of the top spots being occupied by Wav2Vec2 or Wav2Vec2-like systems! As mentioned in Section 4, Wav2Vec2 revolutionised the field of speech recognition by introducing an effective pre-training regime, much the same way as BERT revolutionised NLP. We can see that the word error rates (WERs) for this dataset are extremely low! We’ll cover WER in more detail in this section, but for now we can see that the best performing system achieves a WER of just 1.4%, or a word accuracy rate of 100 - 1.4 = 98.6%! This is very impressive! We’ll see how close we can get with our system 🤗</p>
+<p>Now that we’ve got better idea about the dataset that we’re working with, let’s download it using the <code>load_dataset()</code> function:</p>
+
+	<div class="code-block relative"><div class="absolute top-2.5 right-4"><button class="inline-flex items-center relative text-sm focus:text-green-500 cursor-pointer focus:outline-none transition duration-200 ease-in-out opacity-0 mx-0.5   text-gray-600 " title="code excerpt" type="button"><svg class="" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="currentColor" focusable="false" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 32 32"><path d="M28,10V28H10V10H28m0-2H10a2,2,0,0,0-2,2V28a2,2,0,0,0,2,2H28a2,2,0,0,0,2-2V10a2,2,0,0,0-2-2Z" transform="translate(0)"></path><path d="M4,18H2V4A2,2,0,0,1,4,2H18V4H4Z" transform="translate(0)"></path><rect fill="none" width="32" height="32"></rect></svg>
+	<div class="absolute pointer-events-none transition-opacity bg-black text-white py-1 px-2 leading-tight rounded font-normal shadow left-1/2 top-full transform -translate-x-1/2 translate-y-2 opacity-0"><div class="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-black border-4 border-t-0" style="border-left-color: transparent; border-right-color: transparent; "></div>
+	Copied</div></button></div>
+	<pre><!-- HTML_TAG_START --><span class="hljs-keyword">from</span> datasets <span class="hljs-keyword">import</span> load_dataset, DatasetDict
+
+raw_datasets = DatasetDict()
+
+raw_datasets[<span class="hljs-string">&quot;train&quot;</span>] = load_dataset(<span class="hljs-string">&quot;librispeech_asr&quot;</span>, <span class="hljs-string">&quot;clean&quot;</span>, split=<span class="hljs-string">&quot;train.100&quot;</span>)
+raw_datasets[<span class="hljs-string">&quot;validation&quot;</span>] = load_dataset(<span class="hljs-string">&quot;librispeech_asr&quot;</span>, <span class="hljs-string">&quot;clean&quot;</span>, split=<span class="hljs-string">&quot;validation&quot;</span>)
+raw_datasets[<span class="hljs-string">&quot;test&quot;</span>] = load_dataset(<span class="hljs-string">&quot;librispeech_asr&quot;</span>, <span class="hljs-string">&quot;clean&quot;</span>, split=<span class="hljs-string">&quot;test&quot;</span>)<!-- HTML_TAG_END --></pre></div>
+<p>Note that audio datasets are quite large! For 100h of training data and 10h of validation/test data, we can expect to download ~60GB of raw data.</p>
+<p>Let’s inspect the dataset:</p>
+
+	<div class="code-block relative"><div class="absolute top-2.5 right-4"><button class="inline-flex items-center relative text-sm focus:text-green-500 cursor-pointer focus:outline-none transition duration-200 ease-in-out opacity-0 mx-0.5   text-gray-600 " title="code excerpt" type="button"><svg class="" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="currentColor" focusable="false" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 32 32"><path d="M28,10V28H10V10H28m0-2H10a2,2,0,0,0-2,2V28a2,2,0,0,0,2,2H28a2,2,0,0,0,2-2V10a2,2,0,0,0-2-2Z" transform="translate(0)"></path><path d="M4,18H2V4A2,2,0,0,1,4,2H18V4H4Z" transform="translate(0)"></path><rect fill="none" width="32" height="32"></rect></svg>
+	<div class="absolute pointer-events-none transition-opacity bg-black text-white py-1 px-2 leading-tight rounded font-normal shadow left-1/2 top-full transform -translate-x-1/2 translate-y-2 opacity-0"><div class="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-black border-4 border-t-0" style="border-left-color: transparent; border-right-color: transparent; "></div>
+	Copied</div></button></div>
+	<pre><!-- HTML_TAG_START -->raw_datasets<!-- HTML_TAG_END --></pre></div>
+
+	<div class="code-block relative"><div class="absolute top-2.5 right-4"><button class="inline-flex items-center relative text-sm focus:text-green-500 cursor-pointer focus:outline-none transition duration-200 ease-in-out opacity-0 mx-0.5   text-gray-600 " title="code excerpt" type="button"><svg class="" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="currentColor" focusable="false" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 32 32"><path d="M28,10V28H10V10H28m0-2H10a2,2,0,0,0-2,2V28a2,2,0,0,0,2,2H28a2,2,0,0,0,2-2V10a2,2,0,0,0-2-2Z" transform="translate(0)"></path><path d="M4,18H2V4A2,2,0,0,1,4,2H18V4H4Z" transform="translate(0)"></path><rect fill="none" width="32" height="32"></rect></svg>
+	<div class="absolute pointer-events-none transition-opacity bg-black text-white py-1 px-2 leading-tight rounded font-normal shadow left-1/2 top-full transform -translate-x-1/2 translate-y-2 opacity-0"><div class="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-black border-4 border-t-0" style="border-left-color: transparent; border-right-color: transparent; "></div>
+	Copied</div></button></div>
+	<pre><!-- HTML_TAG_START -->DatasetDict({
+    train: <span class="hljs-built_in">Dataset</span>({
+        features: [<span class="hljs-string">&#x27;file&#x27;</span>, <span class="hljs-string">&#x27;audio&#x27;</span>, <span class="hljs-string">&#x27;text&#x27;</span>, <span class="hljs-string">&#x27;speaker_id&#x27;</span>, <span class="hljs-string">&#x27;chapter_id&#x27;</span>, <span class="hljs-string">&#x27;id&#x27;</span>],
+        num_rows: <span class="hljs-number">28539</span>
+    })
+    validation: <span class="hljs-built_in">Dataset</span>({
+        features: [<span class="hljs-string">&#x27;file&#x27;</span>, <span class="hljs-string">&#x27;audio&#x27;</span>, <span class="hljs-string">&#x27;text&#x27;</span>, <span class="hljs-string">&#x27;speaker_id&#x27;</span>, <span class="hljs-string">&#x27;chapter_id&#x27;</span>, <span class="hljs-string">&#x27;id&#x27;</span>],
+        num_rows: <span class="hljs-number">2703</span>
+    })
+    test: <span class="hljs-built_in">Dataset</span>({
+        features: [<span class="hljs-string">&#x27;file&#x27;</span>, <span class="hljs-string">&#x27;audio&#x27;</span>, <span class="hljs-string">&#x27;text&#x27;</span>, <span class="hljs-string">&#x27;speaker_id&#x27;</span>, <span class="hljs-string">&#x27;chapter_id&#x27;</span>, <span class="hljs-string">&#x27;id&#x27;</span>],
+        num_rows: <span class="hljs-number">2620</span>
+    })
+})<!-- HTML_TAG_END --></pre></div>
+<p>Great! We have our training, validation and test splits ready, with 28539, 2703 and 2620 samples respectively. The two data columns <code>audio</code> and <code>text</code> contain the most important information for our task: the raw audio inputs and the target text outputs.</p>
+<p>Let’s take a look at the first example of the train split:</p>
+
+	<div class="code-block relative"><div class="absolute top-2.5 right-4"><button class="inline-flex items-center relative text-sm focus:text-green-500 cursor-pointer focus:outline-none transition duration-200 ease-in-out opacity-0 mx-0.5   text-gray-600 " title="code excerpt" type="button"><svg class="" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="currentColor" focusable="false" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 32 32"><path d="M28,10V28H10V10H28m0-2H10a2,2,0,0,0-2,2V28a2,2,0,0,0,2,2H28a2,2,0,0,0,2-2V10a2,2,0,0,0-2-2Z" transform="translate(0)"></path><path d="M4,18H2V4A2,2,0,0,1,4,2H18V4H4Z" transform="translate(0)"></path><rect fill="none" width="32" height="32"></rect></svg>
+	<div class="absolute pointer-events-none transition-opacity bg-black text-white py-1 px-2 leading-tight rounded font-normal shadow left-1/2 top-full transform -translate-x-1/2 translate-y-2 opacity-0"><div class="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-black border-4 border-t-0" style="border-left-color: transparent; border-right-color: transparent; "></div>
+	Copied</div></button></div>
+	<pre><!-- HTML_TAG_START -->raw_datasets[<span class="hljs-string">&quot;train&quot;</span>][<span class="hljs-number">0</span>]<!-- HTML_TAG_END --></pre></div>
+
+	<div class="code-block relative"><div class="absolute top-2.5 right-4"><button class="inline-flex items-center relative text-sm focus:text-green-500 cursor-pointer focus:outline-none transition duration-200 ease-in-out opacity-0 mx-0.5   text-gray-600 " title="code excerpt" type="button"><svg class="" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="currentColor" focusable="false" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 32 32"><path d="M28,10V28H10V10H28m0-2H10a2,2,0,0,0-2,2V28a2,2,0,0,0,2,2H28a2,2,0,0,0,2-2V10a2,2,0,0,0-2-2Z" transform="translate(0)"></path><path d="M4,18H2V4A2,2,0,0,1,4,2H18V4H4Z" transform="translate(0)"></path><rect fill="none" width="32" height="32"></rect></svg>
+	<div class="absolute pointer-events-none transition-opacity bg-black text-white py-1 px-2 leading-tight rounded font-normal shadow left-1/2 top-full transform -translate-x-1/2 translate-y-2 opacity-0"><div class="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-black border-4 border-t-0" style="border-left-color: transparent; border-right-color: transparent; "></div>
+	Copied</div></button></div>
+	<pre><!-- HTML_TAG_START -->{&#x27;file&#x27;: &#x27;/home/sanchit_huggingface_co/.cache/huggingface/datasets/downloads/extracted/d2da<span class="hljs-number">1969</span>fe9e7d<span class="hljs-number">0666</span>1b5dc370cf2e3c119a14c<span class="hljs-number">35950045</span>bcb<span class="hljs-number">7624</span>3b264e4f01/374-<span class="hljs-number">180298-0000</span>.flac&#x27;,
+ &#x27;audio&#x27;: {&#x27;path&#x27;: &#x27;/home/sanchit_huggingface_co/.cache/huggingface/datasets/downloads/extracted/d2da<span class="hljs-number">1969</span>fe9e7d<span class="hljs-number">0666</span>1b5dc370cf2e3c119a14c<span class="hljs-number">35950045</span>bcb<span class="hljs-number">7624</span>3b264e4f01/374-<span class="hljs-number">180298-0000</span>.flac&#x27;,
+  &#x27;array&#x27;: array([ <span class="hljs-number">7.01904297</span>e-<span class="hljs-number">04</span>,  <span class="hljs-number">7.32421875</span>e-<span class="hljs-number">04</span>,  <span class="hljs-number">7.32421875</span>e-<span class="hljs-number">04</span>, ...,
+         -<span class="hljs-number">2.74658203</span>e-<span class="hljs-number">04</span>, -<span class="hljs-number">1.83105469</span>e-<span class="hljs-number">04</span>, -<span class="hljs-number">3.05175781</span>e-<span class="hljs-number">05</span>]),
+  &#x27;sampling_rate&#x27;: <span class="hljs-number">16000</span>},
+ &#x27;text&#x27;: &#x27;CHAPTER SIXTEEN I MIGHT HAVE TOLD YOU OF THE BEGINNING OF THIS LIAISON IN A FEW LINES BUT I WANTED YOU TO SEE EVERY STEP BY WHICH WE CAME I TO AGREE TO WHATEVER MARGUERITE WISHED&#x27;,
+ &#x27;speaker_id&#x27;: <span class="hljs-number">374</span>,
+ &#x27;chapter_id&#x27;: <span class="hljs-number">180298</span>,
+ &#x27;id&#x27;: &#x27;374-<span class="hljs-number">180298-0000</span>&#x27;}<!-- HTML_TAG_END --></pre></div>
+<p>Alright! We can see that we have our target text sample ready - it looks very much like it’s taken from an audiobook! But what on earth is going on with the audio? 🤔</p>
+<p>As it turns out, we represent audio data digitally as a 1-dimensional array. Each array value denotes the amplitude of our audio signal at a particular time step. From the amplitude information, we can reconstruct the frequency spectrum of the audio and recover all the acoustic features.</p>
+<p>Since our audio input is continuous, we can’t represent an amplitude value for every possible time step. Instead, we <em>sample</em> amplitude values at fixed time steps.</p>
+<p>The interval with which we sample our audio is known as the <em>sampling rate</em>. For our dataset, we can see that the sampling rate is 16000, meaning 16000 amplitude values are provided each second. Keep the sampling rate in the back of your mind, it’ll be important when we come to processing our data later on!</p>
+<p>Whilst 1-dimensional arrays are a suitable format for machines, they’re not much use to us as humans! We want to be able to <strong>listen</strong> to our audio to get a feel for the speech and recording conditions. Here, we have two options:</p>
+<ol><li>Convert our 1-dimensional array into a human-friendly format (mp3 or wav).</li>
+<li>Look to the Hugging Face Hub!</li></ol>
+<p>Option 2 seems much easier to me! Let’s head over to the LibriSpeech ASR dataset card on the Hugging Face Hub: <a href="https://huggingface.co/datasets/librispeech_asr" rel="nofollow">https://huggingface.co/datasets/librispeech_asr</a></p>
+<p>Slap bang in the middle of the dataset card we have exactly what we’re looking for: the dataset viewer! The dataset viewer shows us the first 100 samples of any dataset. What’s more, it’s loaded up the audio samples ready for us to listen to in real-time! If we hit the play button on the first sample, we can listen to the audio and see the corresponding text. Have a scroll through the samples for the train and test sets to get a better feel for the audio data that we’re dealing with. You’ll notice how clear the audio is and how well spoken the sentences are. This provides us with a clue as to why the top models do so well on LibriSpeech! The audio conditions are very conducive to high system performance.</p>
+<h3 class="relative group"><a id="models-for-speech-recognition" class="header-link block pr-1.5 text-lg no-hover:hidden with-hover:absolute with-hover:p-1.5 with-hover:opacity-0 with-hover:group-hover:opacity-100 with-hover:right-full" href="#models-for-speech-recognition"><span><svg class="" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 256"><path d="M167.594 88.393a8.001 8.001 0 0 1 0 11.314l-67.882 67.882a8 8 0 1 1-11.314-11.315l67.882-67.881a8.003 8.003 0 0 1 11.314 0zm-28.287 84.86l-28.284 28.284a40 40 0 0 1-56.567-56.567l28.284-28.284a8 8 0 0 0-11.315-11.315l-28.284 28.284a56 56 0 0 0 79.196 79.197l28.285-28.285a8 8 0 1 0-11.315-11.314zM212.852 43.14a56.002 56.002 0 0 0-79.196 0l-28.284 28.284a8 8 0 1 0 11.314 11.314l28.284-28.284a40 40 0 0 1 56.568 56.567l-28.285 28.285a8 8 0 0 0 11.315 11.314l28.284-28.284a56.065 56.065 0 0 0 0-79.196z" fill="currentColor"></path></svg></span></a>
+	<span>Models for speech recognition
+	</span></h3>
+
+<p>We can decompose speech recognition models into two parts:</p>
+<ol><li>Encoder: an acoustic model that maps the raw audio input into a sequence of hidden-states.</li></ol>
+<p>diagram</p>
+<ol start="2"><li>Decoder: maps the sequence of hidden-states to logits over the vocabulary.</li></ol>
+<p>diagram</p>
+<p>The encoder is typically of Wav2Vec2 architecture, introduced in Section 4 of this Chapter. We have some flexibility in our choice of decoder. We could either use a simple linear layer that maps the Wav2Vec2 hidden states directly to output logits over our vocabulary. Or, we could pair our Wav2Vec2 encoder with a decoder model, giving a speech encoder-decoder style model, analogous to the NLP encoder-decoder model introduced in Chapter 1.</p>
+<p>A simple linear layer will give a smaller, faster overall model, but will be more susceptible to spelling and grammatical errors. Adding a decoder model greatly improves the quality of transcriptions, at the cost of a larger, slower model. This is because the decoder model is pre-trained on a large corpus of text, enabling us to leverage its learned text representations.
+Since we want our system to be robust to spelling and grammar, let’s go ahead and define a speech encoder-decoder style model.</p>
+<p>We’ll pair a pre-trained Wav2Vec2 encoder with a pre-trained BART decoder, yielding a Wav2Vev2-2-BART model:</p>
+
+	<div class="code-block relative"><div class="absolute top-2.5 right-4"><button class="inline-flex items-center relative text-sm focus:text-green-500 cursor-pointer focus:outline-none transition duration-200 ease-in-out opacity-0 mx-0.5   text-gray-600 " title="code excerpt" type="button"><svg class="" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="currentColor" focusable="false" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 32 32"><path d="M28,10V28H10V10H28m0-2H10a2,2,0,0,0-2,2V28a2,2,0,0,0,2,2H28a2,2,0,0,0,2-2V10a2,2,0,0,0-2-2Z" transform="translate(0)"></path><path d="M4,18H2V4A2,2,0,0,1,4,2H18V4H4Z" transform="translate(0)"></path><rect fill="none" width="32" height="32"></rect></svg>
+	<div class="absolute pointer-events-none transition-opacity bg-black text-white py-1 px-2 leading-tight rounded font-normal shadow left-1/2 top-full transform -translate-x-1/2 translate-y-2 opacity-0"><div class="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-black border-4 border-t-0" style="border-left-color: transparent; border-right-color: transparent; "></div>
+	Copied</div></button></div>
+	<pre><!-- HTML_TAG_START --><span class="hljs-keyword">from</span> transformers <span class="hljs-keyword">import</span> SpeechEncoderDecoderModel
+
+encoder_id = <span class="hljs-string">&quot;facebook/wav2vec2-large-lv60&quot;</span>
+decoder_id = <span class="hljs-string">&quot;facebook/bart-large&quot;</span>
+
+model = SpeechEncoderDecoderModel.from_encoder_decoder_pretrained(encoder_id, decoder_id, encoder_add_adapter=<span class="hljs-literal">True</span>)
+
+<span class="hljs-comment"># set special tokens for generation</span>
+model.config.decoder_start_token_id = model.decoder.config.bos_token_id
+model.config.pad_token_id = model.decoder.config.pad_token_id
+model.config.eos_token_id = model.decoder.config.eos_token_id<!-- HTML_TAG_END --></pre></div>
+<p>The <code>add_adapter</code> argument introduces a small convolutional network between the encoder and decoder models. This adapter network helps interface the encoder and decoder by down-sampling the encoder hidden-states to better match the timescale of the decoder. In practice, including this adapter results in superior performance than the encoder and decoder models alone:</p>
+<p>diagram</p>
+<h4 class="relative group"><a id="preprocessing-the-data" class="header-link block pr-1.5 text-lg no-hover:hidden with-hover:absolute with-hover:p-1.5 with-hover:opacity-0 with-hover:group-hover:opacity-100 with-hover:right-full" href="#preprocessing-the-data"><span><svg class="" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 256"><path d="M167.594 88.393a8.001 8.001 0 0 1 0 11.314l-67.882 67.882a8 8 0 1 1-11.314-11.315l67.882-67.881a8.003 8.003 0 0 1 11.314 0zm-28.287 84.86l-28.284 28.284a40 40 0 0 1-56.567-56.567l28.284-28.284a8 8 0 0 0-11.315-11.315l-28.284 28.284a56 56 0 0 0 79.196 79.197l28.285-28.285a8 8 0 1 0-11.315-11.314zM212.852 43.14a56.002 56.002 0 0 0-79.196 0l-28.284 28.284a8 8 0 1 0 11.314 11.314l28.284-28.284a40 40 0 0 1 56.568 56.567l-28.285 28.285a8 8 0 0 0 11.315 11.314l28.284-28.284a56.065 56.065 0 0 0 0-79.196z" fill="currentColor"></path></svg></span></a>
+	<span>Preprocessing the data
+	</span></h4>
+
+Great! Now that we&#39;ve defined our model we can start preparing our data for training. For this, we&#39;ll need to define two objects: a feature extractor and a tokenizer.
+
+	<div class="code-block relative"><div class="absolute top-2.5 right-4"><button class="inline-flex items-center relative text-sm focus:text-green-500 cursor-pointer focus:outline-none transition duration-200 ease-in-out opacity-0 mx-0.5   text-gray-600 " title="code excerpt" type="button"><svg class="" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="currentColor" focusable="false" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 32 32"><path d="M28,10V28H10V10H28m0-2H10a2,2,0,0,0-2,2V28a2,2,0,0,0,2,2H28a2,2,0,0,0,2-2V10a2,2,0,0,0-2-2Z" transform="translate(0)"></path><path d="M4,18H2V4A2,2,0,0,1,4,2H18V4H4Z" transform="translate(0)"></path><rect fill="none" width="32" height="32"></rect></svg>
+	<div class="absolute pointer-events-none transition-opacity bg-black text-white py-1 px-2 leading-tight rounded font-normal shadow left-1/2 top-full transform -translate-x-1/2 translate-y-2 opacity-0"><div class="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-black border-4 border-t-0" style="border-left-color: transparent; border-right-color: transparent; "></div>
+	Copied</div></button></div>
+	<pre><!-- HTML_TAG_START --><span class="hljs-keyword">from</span> transformers <span class="hljs-keyword">import</span> AutoFeatureExtractor, AutoTokenizer, Wav2Vec2Processor
+<span class="hljs-comment"># load feature extractor (for audio inputs) and tokenizer (for text outputs)</span>
+feature_extractor = AutoFeatureExtractor.from_pretrained(encoder_id)
+tokenizer = AutoTokenizer.from_pretrained(decoder_id)
+<span class="hljs-comment"># combine under one class</span>
+processor = Wav2Vec2Processor(feature_extractor, tokenizer)<!-- HTML_TAG_END --></pre></div>
+<p>We’re already pretty familiar with the tokenizer: it converts the text data into a set of token IDs that can be interpreted by the model. This we’ll use to prepare our target labels. But the feature extractor is new! Simply put, the feature extractor prepares our input audio data.</p>
+<p>A defining feature of Wav2Vec2 is that it accepts a float array corresponding to the raw waveform of the speech signal as an input. We mentioned that the audio data is represented as a 1-dimensional array, so it’s already in the right format to be read by the model (a set of continuous inputs at discrete time steps).</p>
+<p>So, what exactly does the feature extractor do?</p>
+<p>Well, the audio data is in the right format, but we’ve imposed no restrictions on the values it can take. For our model to work optimally, we want to keep all the inputs within the same dynamic range. This is going to make sure we get a similar range of activations and gradients for our samples, helping with stability and convergence during training.</p>
+<p>To do this, we <em>normalise</em> our audio data, by rescaling each sample to zero mean and unit variance, a process called <em>feature scaling</em>. It’s exactly this feature normalisation that our feature extractor performs!</p>
+<p>We can take a look at the feature extractor in operation by applying it to our first audio sample. First, let’s compute the mean and standard deviation of our raw audio data:</p>
+
+	<div class="code-block relative"><div class="absolute top-2.5 right-4"><button class="inline-flex items-center relative text-sm focus:text-green-500 cursor-pointer focus:outline-none transition duration-200 ease-in-out opacity-0 mx-0.5   text-gray-600 " title="code excerpt" type="button"><svg class="" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="currentColor" focusable="false" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 32 32"><path d="M28,10V28H10V10H28m0-2H10a2,2,0,0,0-2,2V28a2,2,0,0,0,2,2H28a2,2,0,0,0,2-2V10a2,2,0,0,0-2-2Z" transform="translate(0)"></path><path d="M4,18H2V4A2,2,0,0,1,4,2H18V4H4Z" transform="translate(0)"></path><rect fill="none" width="32" height="32"></rect></svg>
+	<div class="absolute pointer-events-none transition-opacity bg-black text-white py-1 px-2 leading-tight rounded font-normal shadow left-1/2 top-full transform -translate-x-1/2 translate-y-2 opacity-0"><div class="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-black border-4 border-t-0" style="border-left-color: transparent; border-right-color: transparent; "></div>
+	Copied</div></button></div>
+	<pre><!-- HTML_TAG_START --><span class="hljs-keyword">import</span> numpy <span class="hljs-keyword">as</span> np
+
+sample = raw_datasets[<span class="hljs-string">&quot;train&quot;</span>][<span class="hljs-number">0</span>][<span class="hljs-string">&quot;audio&quot;</span>]
+
+<span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;Mean: <span class="hljs-subst">{np.mean(sample[<span class="hljs-string">&#x27;array&#x27;</span>]):<span class="hljs-number">.3</span>}</span>, Variance: <span class="hljs-subst">{np.var(sample[<span class="hljs-string">&#x27;array&#x27;</span>]):<span class="hljs-number">.3</span>}</span>&quot;</span>)<!-- HTML_TAG_END --></pre></div>
+
+	<div class="code-block relative"><div class="absolute top-2.5 right-4"><button class="inline-flex items-center relative text-sm focus:text-green-500 cursor-pointer focus:outline-none transition duration-200 ease-in-out opacity-0 mx-0.5   text-gray-600 " title="code excerpt" type="button"><svg class="" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="currentColor" focusable="false" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 32 32"><path d="M28,10V28H10V10H28m0-2H10a2,2,0,0,0-2,2V28a2,2,0,0,0,2,2H28a2,2,0,0,0,2-2V10a2,2,0,0,0-2-2Z" transform="translate(0)"></path><path d="M4,18H2V4A2,2,0,0,1,4,2H18V4H4Z" transform="translate(0)"></path><rect fill="none" width="32" height="32"></rect></svg>
+	<div class="absolute pointer-events-none transition-opacity bg-black text-white py-1 px-2 leading-tight rounded font-normal shadow left-1/2 top-full transform -translate-x-1/2 translate-y-2 opacity-0"><div class="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-black border-4 border-t-0" style="border-left-color: transparent; border-right-color: transparent; "></div>
+	Copied</div></button></div>
+	<pre><!-- HTML_TAG_START --><span class="hljs-attribute">Mean</span>: -<span class="hljs-number">2</span>.<span class="hljs-number">17</span>e-<span class="hljs-number">05</span>, Variance: <span class="hljs-number">0</span>.<span class="hljs-number">00379</span><!-- HTML_TAG_END --></pre></div>
+<p>We can see that the mean is close to zero already, but the standard deviation is a long way off! This would cause our model problems, as the dynamic range of the audio data would be very small and difficult to separate. Let’s apply the feature extractor and see what the outputs look like:</p>
+
+	<div class="code-block relative"><div class="absolute top-2.5 right-4"><button class="inline-flex items-center relative text-sm focus:text-green-500 cursor-pointer focus:outline-none transition duration-200 ease-in-out opacity-0 mx-0.5   text-gray-600 " title="code excerpt" type="button"><svg class="" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="currentColor" focusable="false" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 32 32"><path d="M28,10V28H10V10H28m0-2H10a2,2,0,0,0-2,2V28a2,2,0,0,0,2,2H28a2,2,0,0,0,2-2V10a2,2,0,0,0-2-2Z" transform="translate(0)"></path><path d="M4,18H2V4A2,2,0,0,1,4,2H18V4H4Z" transform="translate(0)"></path><rect fill="none" width="32" height="32"></rect></svg>
+	<div class="absolute pointer-events-none transition-opacity bg-black text-white py-1 px-2 leading-tight rounded font-normal shadow left-1/2 top-full transform -translate-x-1/2 translate-y-2 opacity-0"><div class="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-black border-4 border-t-0" style="border-left-color: transparent; border-right-color: transparent; "></div>
+	Copied</div></button></div>
+	<pre><!-- HTML_TAG_START -->inputs = feature_extractor(sample[<span class="hljs-string">&quot;array&quot;</span>], sampling_rate=sample[<span class="hljs-string">&quot;sampling_rate&quot;</span>])
+
+<span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;inputs keys: <span class="hljs-subst">{<span class="hljs-built_in">list</span>(inputs.keys())}</span>&quot;</span>)
+
+<span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;Mean: <span class="hljs-subst">{np.mean(inputs[<span class="hljs-string">&#x27;input_values&#x27;</span>]):<span class="hljs-number">.3</span>}</span>, Variance: <span class="hljs-subst">{np.var(inputs[<span class="hljs-string">&#x27;input_values&#x27;</span>]):<span class="hljs-number">.3</span>}</span>&quot;</span>)<!-- HTML_TAG_END --></pre></div>
+
+	<div class="code-block relative"><div class="absolute top-2.5 right-4"><button class="inline-flex items-center relative text-sm focus:text-green-500 cursor-pointer focus:outline-none transition duration-200 ease-in-out opacity-0 mx-0.5   text-gray-600 " title="code excerpt" type="button"><svg class="" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="currentColor" focusable="false" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 32 32"><path d="M28,10V28H10V10H28m0-2H10a2,2,0,0,0-2,2V28a2,2,0,0,0,2,2H28a2,2,0,0,0,2-2V10a2,2,0,0,0-2-2Z" transform="translate(0)"></path><path d="M4,18H2V4A2,2,0,0,1,4,2H18V4H4Z" transform="translate(0)"></path><rect fill="none" width="32" height="32"></rect></svg>
+	<div class="absolute pointer-events-none transition-opacity bg-black text-white py-1 px-2 leading-tight rounded font-normal shadow left-1/2 top-full transform -translate-x-1/2 translate-y-2 opacity-0"><div class="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-black border-4 border-t-0" style="border-left-color: transparent; border-right-color: transparent; "></div>
+	Copied</div></button></div>
+	<pre><!-- HTML_TAG_START --><span class="hljs-attribute">inputs</span> keys:<span class="hljs-meta"> [&#x27;input_values&#x27;, &#x27;attention_mask&#x27;]</span>
+<span class="hljs-attribute">Mean</span>: -<span class="hljs-number">2</span>.<span class="hljs-number">8</span>e-<span class="hljs-number">09</span>, Variance: <span class="hljs-number">1</span>.<span class="hljs-number">0</span><!-- HTML_TAG_END --></pre></div>
+<p>Alright! Our feature extractor returns a dictionary of two arrays: <code>input_values</code> and <code>attention_mask</code>. The <code>input_values</code> are the preprocessed audio inputs that we’d pass to the Wav2Vec2 model. The <code>attention_mask</code> would be used if we processed a <em>batch</em> of audio inputs at once.</p>
+<p>We can see that the mean value is now very much closer to zero, and the variance bang-on one! This is exactly the form we want our audio samples in prior to feeding them to the Wav2Vec2 encoder.</p>
+<p>Note how we’ve passed the sampling rate of our audio data to our feature extractor. This is good practice, as the feature extractor performs a check under-the-hood to make sure the sampling rate of our audio data matches the sampling rate expected by the model.</p>
+<p>Let’s combine our feature extractor and tokenizer into one function to jointly preprocess our audio and text data:</p>
+
+	<div class="code-block relative"><div class="absolute top-2.5 right-4"><button class="inline-flex items-center relative text-sm focus:text-green-500 cursor-pointer focus:outline-none transition duration-200 ease-in-out opacity-0 mx-0.5   text-gray-600 " title="code excerpt" type="button"><svg class="" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="currentColor" focusable="false" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 32 32"><path d="M28,10V28H10V10H28m0-2H10a2,2,0,0,0-2,2V28a2,2,0,0,0,2,2H28a2,2,0,0,0,2-2V10a2,2,0,0,0-2-2Z" transform="translate(0)"></path><path d="M4,18H2V4A2,2,0,0,1,4,2H18V4H4Z" transform="translate(0)"></path><rect fill="none" width="32" height="32"></rect></svg>
+	<div class="absolute pointer-events-none transition-opacity bg-black text-white py-1 px-2 leading-tight rounded font-normal shadow left-1/2 top-full transform -translate-x-1/2 translate-y-2 opacity-0"><div class="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-black border-4 border-t-0" style="border-left-color: transparent; border-right-color: transparent; "></div>
+	Copied</div></button></div>
+	<pre><!-- HTML_TAG_START --><span class="hljs-keyword">def</span> <span class="hljs-title function_">prepare_dataset</span>(<span class="hljs-params">batch</span>):
+    <span class="hljs-comment"># process audio</span>
+    sample = batch[<span class="hljs-string">&quot;audio&quot;</span>]
+    inputs = feature_extractor(sample[<span class="hljs-string">&quot;array&quot;</span>], sampling_rate=sample[<span class="hljs-string">&quot;sampling_rate&quot;</span>])
+    <span class="hljs-comment"># process audio length</span>
+    batch[<span class="hljs-string">&quot;input_values&quot;</span>] = inputs.input_values[<span class="hljs-number">0</span>]
+    batch[<span class="hljs-string">&quot;input_length&quot;</span>] = <span class="hljs-built_in">len</span>(batch[<span class="hljs-string">&quot;input_values&quot;</span>])
+
+    <span class="hljs-comment"># process targets</span>
+    input_str = batch[<span class="hljs-string">&quot;text&quot;</span>].lower()
+    <span class="hljs-comment"># tokenize</span>
+    batch[<span class="hljs-string">&quot;labels&quot;</span>] = tokenizer(input_str).input_ids
+    <span class="hljs-keyword">return</span> batch
+
+
+vectorized_datasets = raw_datasets.<span class="hljs-built_in">map</span>(
+    prepare_dataset,
+    remove_columns=<span class="hljs-built_in">next</span>(<span class="hljs-built_in">iter</span>(raw_datasets.values())).column_names,
+    desc=<span class="hljs-string">&quot;preprocess dataset&quot;</span>,
+)<!-- HTML_TAG_END --></pre></div>
+<p>Note that it is important to align the decoder’s vocabulary with the speech transcriptions of the dataset.</p>
+<p>E.g. Librispeech: only captilised letters in the transcriptions, whereas BART was pretrained mostly on lower-cased text.</p>
+<p>Filter to max len 20s</p>
+
+	<div class="code-block relative"><div class="absolute top-2.5 right-4"><button class="inline-flex items-center relative text-sm focus:text-green-500 cursor-pointer focus:outline-none transition duration-200 ease-in-out opacity-0 mx-0.5   text-gray-600 " title="code excerpt" type="button"><svg class="" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="currentColor" focusable="false" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 32 32"><path d="M28,10V28H10V10H28m0-2H10a2,2,0,0,0-2,2V28a2,2,0,0,0,2,2H28a2,2,0,0,0,2-2V10a2,2,0,0,0-2-2Z" transform="translate(0)"></path><path d="M4,18H2V4A2,2,0,0,1,4,2H18V4H4Z" transform="translate(0)"></path><rect fill="none" width="32" height="32"></rect></svg>
+	<div class="absolute pointer-events-none transition-opacity bg-black text-white py-1 px-2 leading-tight rounded font-normal shadow left-1/2 top-full transform -translate-x-1/2 translate-y-2 opacity-0"><div class="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-black border-4 border-t-0" style="border-left-color: transparent; border-right-color: transparent; "></div>
+	Copied</div></button></div>
+	<pre><!-- HTML_TAG_START -->MAX_INPUT_LENGTH_IN_SECONDS = <span class="hljs-number">20</span>
+
+max_input_length = MAX_INPUT_LENGTH_IN_SECONDS * feature_extractor.sampling_rate
+<span class="hljs-comment"># filter data that is longer than max_input_length</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">is_audio_in_length_range</span>(<span class="hljs-params">length</span>):
+    <span class="hljs-keyword">return</span> length &lt; max_input_length
+
+vectorized_datasets = vectorized_datasets.<span class="hljs-built_in">filter</span>(
+    is_audio_in_length_range,
+    input_columns=[<span class="hljs-string">&quot;input_length&quot;</span>],
+)<!-- HTML_TAG_END --></pre></div>
+<p>Define the datacollator:</p>
+
+	<div class="code-block relative"><div class="absolute top-2.5 right-4"><button class="inline-flex items-center relative text-sm focus:text-green-500 cursor-pointer focus:outline-none transition duration-200 ease-in-out opacity-0 mx-0.5   text-gray-600 " title="code excerpt" type="button"><svg class="" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="currentColor" focusable="false" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 32 32"><path d="M28,10V28H10V10H28m0-2H10a2,2,0,0,0-2,2V28a2,2,0,0,0,2,2H28a2,2,0,0,0,2-2V10a2,2,0,0,0-2-2Z" transform="translate(0)"></path><path d="M4,18H2V4A2,2,0,0,1,4,2H18V4H4Z" transform="translate(0)"></path><rect fill="none" width="32" height="32"></rect></svg>
+	<div class="absolute pointer-events-none transition-opacity bg-black text-white py-1 px-2 leading-tight rounded font-normal shadow left-1/2 top-full transform -translate-x-1/2 translate-y-2 opacity-0"><div class="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-black border-4 border-t-0" style="border-left-color: transparent; border-right-color: transparent; "></div>
+	Copied</div></button></div>
+	<pre><!-- HTML_TAG_START --><span class="hljs-keyword">from</span> dataclasses <span class="hljs-keyword">import</span> dataclass
+
+<span class="hljs-meta">@dataclass</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">DataCollatorSpeechSeq2SeqWithPadding</span>:
+    <span class="hljs-string">&quot;&quot;&quot;
+    Data collator that will dynamically pad the inputs received.
+    Args:
+        processor ([`Wav2Vec2Processor`])
+            The processor used for processing the data.
+        decoder_start_token_id (`int`)
+            The begin-of-sentence of the decoder.
+    &quot;&quot;&quot;</span>
+
+    processor: Wav2Vec2Processor
+    decoder_start_token_id: <span class="hljs-built_in">int</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__call__</span>(<span class="hljs-params">self, features</span>):
+        <span class="hljs-comment"># split inputs and labels since they have to be of different lengths and need</span>
+        <span class="hljs-comment"># different padding methods</span>
+        input_features = [{<span class="hljs-string">&quot;input_values&quot;</span>: feature[<span class="hljs-string">&quot;input_values&quot;</span>]} <span class="hljs-keyword">for</span> feature <span class="hljs-keyword">in</span> features]
+        label_features = [{<span class="hljs-string">&quot;input_ids&quot;</span>: feature[<span class="hljs-string">&quot;labels&quot;</span>]} <span class="hljs-keyword">for</span> feature <span class="hljs-keyword">in</span> features]
+
+        <span class="hljs-comment"># pad the audio inputs to max length</span>
+        batch = self.processor.feature_extractor.pad(input_features, return_tensors=<span class="hljs-string">&quot;pt&quot;</span>)
+
+        <span class="hljs-comment"># pad the token targets to max length</span>
+        labels_batch = self.processor.tokenizer.pad(label_features, return_tensors=<span class="hljs-string">&quot;pt&quot;</span>)
+
+        <span class="hljs-comment"># replace padding with -100 to ignore loss correctly</span>
+        labels = labels_batch[<span class="hljs-string">&quot;input_ids&quot;</span>].masked_fill(labels_batch.attention_mask.ne(<span class="hljs-number">1</span>), -<span class="hljs-number">100</span>)
+
+        <span class="hljs-comment"># if bos token is appended in previous tokenization step,</span>
+        <span class="hljs-comment"># cut bos token here as it&#x27;s appended later</span>
+        <span class="hljs-keyword">if</span> (labels[:, <span class="hljs-number">0</span>] == self.decoder_start_token_id).<span class="hljs-built_in">all</span>().cpu().item():
+            labels = labels[:, <span class="hljs-number">1</span>:]
+
+        batch[<span class="hljs-string">&quot;labels&quot;</span>] = labels
+
+        <span class="hljs-keyword">return</span> batch
+
+data_collator = DataCollatorSpeechSeq2SeqWithPadding(
+        processor=processor, decoder_start_token_id=model.config.decoder_start_token_id
+    )<!-- HTML_TAG_END --></pre></div>
+<h4 class="relative group"><a id="metrics-for-speech-recognition" class="header-link block pr-1.5 text-lg no-hover:hidden with-hover:absolute with-hover:p-1.5 with-hover:opacity-0 with-hover:group-hover:opacity-100 with-hover:right-full" href="#metrics-for-speech-recognition"><span><svg class="" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 256"><path d="M167.594 88.393a8.001 8.001 0 0 1 0 11.314l-67.882 67.882a8 8 0 1 1-11.314-11.315l67.882-67.881a8.003 8.003 0 0 1 11.314 0zm-28.287 84.86l-28.284 28.284a40 40 0 0 1-56.567-56.567l28.284-28.284a8 8 0 0 0-11.315-11.315l-28.284 28.284a56 56 0 0 0 79.196 79.197l28.285-28.285a8 8 0 1 0-11.315-11.314zM212.852 43.14a56.002 56.002 0 0 0-79.196 0l-28.284 28.284a8 8 0 1 0 11.314 11.314l28.284-28.284a40 40 0 0 1 56.568 56.567l-28.285 28.285a8 8 0 0 0 11.315 11.314l28.284-28.284a56.065 56.065 0 0 0 0-79.196z" fill="currentColor"></path></svg></span></a>
+	<span>Metrics for speech recognition
+	</span></h4>
+
+<p>WER</p>
+<p>WAR</p>
+<p>CER</p>
+<h4 class="relative group"><a id="finetuning-a-speech-recognition-system-with-the-trainer-api" class="header-link block pr-1.5 text-lg no-hover:hidden with-hover:absolute with-hover:p-1.5 with-hover:opacity-0 with-hover:group-hover:opacity-100 with-hover:right-full" href="#finetuning-a-speech-recognition-system-with-the-trainer-api"><span><svg class="" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 256"><path d="M167.594 88.393a8.001 8.001 0 0 1 0 11.314l-67.882 67.882a8 8 0 1 1-11.314-11.315l67.882-67.881a8.003 8.003 0 0 1 11.314 0zm-28.287 84.86l-28.284 28.284a40 40 0 0 1-56.567-56.567l28.284-28.284a8 8 0 0 0-11.315-11.315l-28.284 28.284a56 56 0 0 0 79.196 79.197l28.285-28.285a8 8 0 1 0-11.315-11.314zM212.852 43.14a56.002 56.002 0 0 0-79.196 0l-28.284 28.284a8 8 0 1 0 11.314 11.314l28.284-28.284a40 40 0 0 1 56.568 56.567l-28.285 28.285a8 8 0 0 0 11.315 11.314l28.284-28.284a56.065 56.065 0 0 0 0-79.196z" fill="currentColor"></path></svg></span></a>
+	<span>Fine-tuning a speech recognition system with the Trainer API
+	</span></h4>
+
+Oh golly quite a lot to do...
+
+
+		<script type="module" data-hydrate="1ayfrqf">
+		import { start } from "/docs/course/pr_294/en/_app/start-hf-doc-builder.js";
+		start({
+			target: document.querySelector('[data-hydrate="1ayfrqf"]').parentNode,
+			paths: {"base":"/docs/course/pr_294/en","assets":"/docs/course/pr_294/en"},
+			session: {},
+			route: false,
+			spa: false,
+			trailing_slash: "never",
+			hydrate: {
+				status: 200,
+				error: null,
+				nodes: [
+					import("/docs/course/pr_294/en/_app/pages/__layout.svelte-hf-doc-builder.js"),
+						import("/docs/course/pr_294/en/_app/pages/chapter10/4.mdx-hf-doc-builder.js")
+				],
+				params: {}
+			}
+		});
+	</script>

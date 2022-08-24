@@ -1,0 +1,54 @@
+<meta charset="utf-8" /><meta http-equiv="content-security-policy" content=""><meta name="hf:doc:metadata" content="{&quot;local&quot;:&quot;introduzione&quot;,&quot;title&quot;:&quot;Introduzione&quot;}" data-svelte="svelte-1phssyn">
+	<link rel="modulepreload" href="/docs/course/pr_300/it/_app/assets/pages/__layout.svelte-hf-doc-builder.css">
+	<link rel="modulepreload" href="/docs/course/pr_300/it/_app/start-hf-doc-builder.js">
+	<link rel="modulepreload" href="/docs/course/pr_300/it/_app/chunks/vendor-hf-doc-builder.js">
+	<link rel="modulepreload" href="/docs/course/pr_300/it/_app/chunks/paths-hf-doc-builder.js">
+	<link rel="modulepreload" href="/docs/course/pr_300/it/_app/pages/__layout.svelte-hf-doc-builder.js">
+	<link rel="modulepreload" href="/docs/course/pr_300/it/_app/pages/chapter2/1.mdx-hf-doc-builder.js">
+	<link rel="modulepreload" href="/docs/course/pr_300/it/_app/chunks/Tip-hf-doc-builder.js">
+	<link rel="modulepreload" href="/docs/course/pr_300/it/_app/chunks/IconCopyLink-hf-doc-builder.js"> 
+
+
+
+
+
+<h1 class="relative group"><a id="introduzione" class="header-link block pr-1.5 text-lg no-hover:hidden with-hover:absolute with-hover:p-1.5 with-hover:opacity-0 with-hover:group-hover:opacity-100 with-hover:right-full" href="#introduzione"><span><svg class="" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 256"><path d="M167.594 88.393a8.001 8.001 0 0 1 0 11.314l-67.882 67.882a8 8 0 1 1-11.314-11.315l67.882-67.881a8.003 8.003 0 0 1 11.314 0zm-28.287 84.86l-28.284 28.284a40 40 0 0 1-56.567-56.567l28.284-28.284a8 8 0 0 0-11.315-11.315l-28.284 28.284a56 56 0 0 0 79.196 79.197l28.285-28.285a8 8 0 1 0-11.315-11.314zM212.852 43.14a56.002 56.002 0 0 0-79.196 0l-28.284 28.284a8 8 0 1 0 11.314 11.314l28.284-28.284a40 40 0 0 1 56.568 56.567l-28.285 28.285a8 8 0 0 0 11.315 11.314l28.284-28.284a56.065 56.065 0 0 0 0-79.196z" fill="currentColor"></path></svg></span></a>
+	<span>Introduzione
+	</span></h1>
+
+<p>Come si è visto nel <a href="/course/chapter1">Capitolo 1</a>,  I modelli Transformers sono solitamente molto grandi.
+Con milioni o decine di <em>miliardi</em> di parametri, l’addestramento e la distribuzione di questi modelli è un’impresa complicata.
+Inoltre, con i nuovi modelli che vengono rilasciati quasi ogni giorno e ognuno dei quali ha una propria implementazione, provarli tutti non è un lavoro facile.</p>
+<p>La libreria 🤗 Transformers è stata creata per risolvere questo problema. Il suo obiettivo è fornire un’unica API attraverso la quale caricare, addestrare e salvare qualsiasi modello Transformer. Le caratteristiche principali della libreria sono:</p>
+<ul><li><strong>Facilità d’uso</strong>: È possibile scaricare, caricare ed utilizzare un modello NLP all’avanguardia per fare inferenza con appena due righe di codice.</li>
+<li><strong>Flessibilità</strong>: Al loro interno, tutti i modelli sono semplici classi PyTorch <code>nn.Module</code> o TensorFlow <code>tf.keras.Model</code> e possono essere gestiti come qualsiasi altro modello nei rispettivi framework di apprendimento automatico (ML).</li>
+<li><strong>Semplicità</strong>: La libreria non contiene quasi nessuna astrazione. Il concetto di “All in one file” è fondamentale: il forward pass di un modello è interamente definito in un singolo file, in modo che il codice stesso sia comprensibile e violabile.</li></ul>
+<p>Quest’ultima caratteristica rende 🤗 Transformers molto diversi da altre librerie ML. I modelli non sono costruiti su moduli condivisi tra i file, ma ogni modello ha i propri layers. Oltre a rendere i modelli più accessibili e comprensibili, questo permette di sperimentare facilmente su un modello senza influenzare gli altri.</p>
+<p>Questo capitolo inizierà con un esempio in cui usiamo un modello e un tokenizer insieme per replicare la funzione <code>pipeline()</code> introdotta nel <a href="/course/chapter1">Capitolo 1</a>. Successivamente, parleremo dell’API del modello: ci immergeremo nelle classi del modello e della configurazione e mostreremo come caricare un modello e come esso elabora gli input numerici per produrre previsioni.</p>
+<p>Successivamente vedremo l’API del tokenizer, che è l’altro componente principale della funzione <code>pipeline()</code>. I tokenizer si occupano della prima e dell’ultima fase di elaborazione, gestendo la conversione da testo a input numerici per la rete neurale e la conversione di nuovo in testo quando è necessario. Infine, mostreremo come gestire l’invio di più frasi a un modello in un batch preparato, per poi concludere il tutto con un’analisi più approfondita della funzione di alto livello <code>tokenizer()</code>.</p>
+
+
+<div class="course-tip  bg-gradient-to-br dark:bg-gradient-to-r before:border-green-500 dark:before:border-green-800 from-green-50 dark:from-gray-900 to-white dark:to-gray-950 border border-green-50 text-green-700 dark:text-gray-400">⚠️ Per poter usufruire di tutte le funzioni disponibili con il Model Hub e i 🤗 Transformers, si consiglia di <a href="https://huggingface.co/join">creare un account</a>.
+</div>
+
+
+		<script type="module" data-hydrate="aui03q">
+		import { start } from "/docs/course/pr_300/it/_app/start-hf-doc-builder.js";
+		start({
+			target: document.querySelector('[data-hydrate="aui03q"]').parentNode,
+			paths: {"base":"/docs/course/pr_300/it","assets":"/docs/course/pr_300/it"},
+			session: {},
+			route: false,
+			spa: false,
+			trailing_slash: "never",
+			hydrate: {
+				status: 200,
+				error: null,
+				nodes: [
+					import("/docs/course/pr_300/it/_app/pages/__layout.svelte-hf-doc-builder.js"),
+						import("/docs/course/pr_300/it/_app/pages/chapter2/1.mdx-hf-doc-builder.js")
+				],
+				params: {}
+			}
+		});
+	</script>
